@@ -13,7 +13,7 @@ use crate::loggers::console::ConsoleLogger;
 pub struct TargetConfig {
     #[serde(rename = "type")]
     pub target_type: String,
-    pub properties: HashMap<String, Value>,
+    pub properties: HashMap<String, String>,
 }
 
 #[derive(Serialize, Deserialize)]

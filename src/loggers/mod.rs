@@ -44,8 +44,9 @@ impl Logger {
 }
 
 pub trait LoggerTarget: Sync + Send {
-    fn log(&self, logger: &Logger, record: &Record) -> Result<(), Error>;
+    fn log(&self, message: String) -> Result<(), Error>;
     fn settings(&self) -> HashMap<String, Value>;
     fn name(&self) -> String;
+    fn format(&self) -> String;
 }
 

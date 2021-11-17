@@ -5,7 +5,7 @@
         {
           "type": "console",
           "properties": {
-            "format": "{}"
+            "format": "%module% %date_time{format=''}% %level%: %message%"
           }
         }
       ]
@@ -17,7 +17,7 @@
         {
           "type": "console",
           "properties": {
-            "format": "{}"
+            "format": "%module% %level%: %message%"
           }
         }
       ]

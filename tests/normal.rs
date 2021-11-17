@@ -7,7 +7,7 @@ use nitro_log::loggers::Logger;
 use nitro_log::NitroLogger;
 
 fn main() {
-    NitroLogger::load_file(PathBuf::new().join("example.config.json")).unwrap();
+    NitroLogger::load_file(PathBuf::new().join("example.config.json"), None).unwrap();
     trace!("Trace HEY");
     info!("INFO HEY");
     warn!("Warn HEY");

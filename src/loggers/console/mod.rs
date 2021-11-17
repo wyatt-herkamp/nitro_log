@@ -9,8 +9,10 @@ pub struct ConsoleLogger {
 }
 
 impl ConsoleLogger {
-    pub fn init(settings: HashMap<String, Value>) -> Result<ConsoleLogger, Error> {
-        return Ok(ConsoleLogger { format: "".to_string() });
+    pub fn init(settings: HashMap<String, String>) -> Result<ConsoleLogger, Error> {
+        let string = settings.get("format").unwrap_or(&"%level%: %message%".to_string()).to_string();
+        let logger = ConsoleLogger { format: string };
+        return Ok(logger);
     }
 }
 
@@ -21,8 +23,8 @@ impl Default for ConsoleLogger {
 }
 
 impl LoggerTarget for ConsoleLogger {
-    fn log(&self, logger: &Logger, record: &Record) -> Result<(), Error> {
-        println!("{} - {}", record.level(), record.args());
+    fn log(&self, message: String) -> Result<(), Error> {
+        println!("{}", message);
         Ok(())
     }
 
@@ -34,5 +36,9 @@ impl LoggerTarget for ConsoleLogger {
 
     fn name(&self) -> String {
         return "console".to_string();
+    }
+
+    fn format(&self) -> String {
+        return self.format.clone();
     }
 }
