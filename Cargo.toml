@@ -1,0 +1,14 @@
+[package]
+name = "nitro_log"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = { version = "0.4.8", features = ["std"] }
+text_trees = "0.1.2"
+either = "1.6.1"
+[[test]]
+name = "normal"
+harness = false
