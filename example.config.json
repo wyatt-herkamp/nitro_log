@@ -1,0 +1,26 @@
+{
+  "default_loggers": [
+    {
+      "targets": [
+        {
+          "type": "console",
+          "properties": {
+            "format": "{}"
+          }
+        }
+      ]
+    }
+  ], "loggers": [
+    {
+      "module": "normal",
+      "targets": [
+        {
+          "type": "console",
+          "properties": {
+            "format": "{}"
+          }
+        }
+      ]
+    }
+  ]
+}

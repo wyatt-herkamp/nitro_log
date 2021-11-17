@@ -6,9 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = { version = "0.4.8", features = ["std"] }
-text_trees = "0.1.2"
-either = "1.6.1"
+log = { version = "0.4.8", features = ["std", "serde"] }
+text_trees = { version = "0.1.2" }
+serde_json = "1.0.70"
+serde = { version = "1.0.130", features = ["derive"] }
 [[test]]
 name = "normal"
 harness = false

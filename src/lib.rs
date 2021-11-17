@@ -1,17 +1,29 @@
 pub mod loggers;
 pub mod error;
+mod config;
 
-use std::error::Error;
+use std::fs::{File, read_to_string};
+use std::path::PathBuf;
 use log::{LevelFilter, logger, Metadata, Record, SetLoggerError};
-use crate::loggers::{FindLogger, Logger, LoggerTree};
+use crate::config::Config;
+use crate::error::Error;
+use crate::loggers::{ Logger};
+use crate::loggers::tree::LoggerTree;
 
 pub struct NitroLogger {
     pub loggers: LoggerTree,
 }
 
 impl NitroLogger {
-    pub fn load_with_loggers(loggers: LoggerTree) -> Result<(), SetLoggerError> {
-        log::set_boxed_logger(Box::new(NitroLogger { loggers })).map(|()| log::set_max_level(LevelFilter::Trace))
+    pub fn load_file(config: PathBuf) -> Result<(), Error> {
+        let config: Config = serde_json::from_reader(File::open(config)?)?;
+        NitroLogger::load(config)
+    }
+    pub fn load(config: Config) -> Result<(), Error> {
+        return NitroLogger::load_with_loggers(config.load());
+    }
+    pub fn load_with_loggers(loggers: LoggerTree) -> Result<(), Error> {
+        log::set_boxed_logger(Box::new(NitroLogger { loggers })).map(|()| log::set_max_level(LevelFilter::Trace)).map_err(|e| Error::SetLoggerError(e))
     }
 }
 
@@ -27,9 +39,14 @@ impl log::Log for NitroLogger {
         if option.is_none() {
             panic!("No Loggers Found!");
         }
-        let loggers = option.unwrap().find_logger(&record);
-        if let Some(logger) = loggers{
-            logger.target.log(logger, record);
+
+        let loggers = option.unwrap();
+        for logger in loggers {
+            if logger.levels.contains(&record.metadata().level()){
+                for x in &logger.targets {
+                    x.log(logger, record);
+                }
+            }
         }
     }
 
