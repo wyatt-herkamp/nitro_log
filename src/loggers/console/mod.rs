@@ -1,8 +1,5 @@
-
-
 use log::Record;
 use serde::{Deserialize, Serialize};
-
 
 use crate::error::Error;
 use crate::loggers::{Logger, LoggerTarget};

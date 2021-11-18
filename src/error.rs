@@ -1,5 +1,5 @@
-use std::fmt::{Display, Formatter};
 use log::SetLoggerError;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
 pub enum Error {
@@ -7,7 +7,7 @@ pub enum Error {
     IOError(std::io::Error),
     SerdeJson(serde_json::Error),
 }
-impl Display for Error{
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self)
     }

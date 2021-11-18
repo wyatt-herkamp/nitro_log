@@ -1,6 +1,4 @@
-
 use log::{error, info, trace, warn};
-
 
 use nitro_log::NitroLogger;
 

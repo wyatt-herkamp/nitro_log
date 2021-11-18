@@ -1,4 +1,3 @@
-
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
@@ -6,7 +5,6 @@ use std::path::PathBuf;
 use log::Record;
 
 use serde::{Deserialize, Serialize};
-
 
 use crate::error::Error;
 use crate::loggers::{Logger, LoggerTarget};

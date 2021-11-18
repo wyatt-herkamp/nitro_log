@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fs::{File};
+use std::fs::File;
 use std::path::PathBuf;
 
 use log::{LevelFilter, Metadata, Record};
@@ -8,7 +8,7 @@ use regex::Regex;
 use crate::config::Config;
 use crate::error::Error;
 use crate::loggers::tree::LoggerTree;
-use crate::loggers::{Logger};
+use crate::loggers::Logger;
 use crate::placeholders::{
     EnvPlaceholder, FindPlaceholder, LevelPlaceholder, MessagePlaceholder, ModulePlaceHolder,
     Placeholders,
@@ -40,8 +40,8 @@ impl NitroLogger {
             loggers,
             placeholders: load_place_holders(placeholders),
         }))
-            .map(|()| log::set_max_level(LevelFilter::Trace))
-            .map_err(|e| Error::SetLoggerError(e))
+        .map(|()| log::set_max_level(LevelFilter::Trace))
+        .map_err(|e| Error::SetLoggerError(e))
     }
 }
 
@@ -52,7 +52,7 @@ fn load_place_holders(placeholders: Option<Placeholders>) -> Placeholders {
     placeholders.push(Box::new(LevelPlaceholder));
     placeholders.push(Box::new(EnvPlaceholder));
     #[cfg(feature = "time")]
-        placeholders.push(Box::new(crate::placeholders::time::DateTimePlaceholder));
+    placeholders.push(Box::new(crate::placeholders::time::DateTimePlaceholder));
 
     return placeholders;
 }

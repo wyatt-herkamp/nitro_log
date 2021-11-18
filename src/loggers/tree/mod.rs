@@ -1,6 +1,5 @@
 use crate::Logger;
 
-
 pub struct LoggerTree {
     pub loggers: Vec<Logger>,
     pub children: Vec<TreeNode>,
@@ -103,9 +102,9 @@ impl TreeNode {
 }
 #[cfg(test)]
 mod test {
-    use log::Level::{Info, Warn};
-    use crate::{Logger, LoggerTree};
     use crate::loggers::console::ConsoleLogger;
+    use crate::{Logger, LoggerTree};
+    use log::Level::{Info, Warn};
 
     #[test]
     fn basic() {

@@ -1,16 +1,7 @@
-
-
-
-
-
 use log::{Level, Record};
 
-
-
-
-
 use crate::error::Error;
-use crate::loggers::console::{ConsoleLogger};
+use crate::loggers::console::ConsoleLogger;
 use crate::Placeholders;
 
 pub mod console;

@@ -2,9 +2,8 @@
 pub mod time;
 
 use crate::Logger;
-use log::{Record};
+use log::Record;
 use std::collections::HashMap;
-
 
 pub type Placeholders = Vec<Box<dyn Placeholder>>;
 
@@ -23,18 +22,22 @@ impl FindPlaceholder for Placeholders {
     }
 }
 
-// %.+?%
-/// %module% %date_time{format=''}% %level%: %message%
+/// PLaceHolders are variables that are added to a message or file path on log
+/// They will appear between % % _{} within those will be properties
+/// Example %datetime_{format='$Y'}%
 pub trait Placeholder: Sync + Send {
+    /// Called when replacing a PlaceHolder
     fn replace(
         &self,
         properties: HashMap<String, String>,
         record: &Record,
         logger: &Logger,
     ) -> Option<String>;
+    /// Gets the Name of the PlaceHolder
     fn name(&self) -> &'static str;
 }
 
+/// The Module PlaceHolder just returns the Module Path from Record
 pub struct ModulePlaceHolder;
 
 impl Placeholder for ModulePlaceHolder {
@@ -52,33 +55,37 @@ impl Placeholder for ModulePlaceHolder {
     }
 }
 
+/// Returns the Level of logging
+/// You can add the color=true property to add color the level name
 pub struct LevelPlaceholder;
 
 impl Placeholder for LevelPlaceholder {
     fn replace(
         &self,
-        _properties: HashMap<String, String>,
+        properties: HashMap<String, String>,
         record: &Record,
         _logger: &Logger,
     ) -> Option<String> {
         #[cfg(feature = "colors")]
-        {
-            use colored::Colorize;
-            let default = "false".to_string();
-            let x = properties.get("color").unwrap_or(&default);
-            let value: bool = bool::from_str(x).unwrap();
-            if value {
-                let string = record.metadata().level().to_string();
-                let value = match record.metadata().level() {
-                    Level::Error => string.red().to_string(),
-                    Level::Warn => string.yellow().to_string(),
-                    Level::Info => string,
-                    Level::Debug => string.green().to_string(),
-                    Level::Trace => string.cyan().to_string(),
-                };
-                return Some(value);
+            {
+                use colored::Colorize;
+                use log::Level;
+                use std::str::FromStr;
+                let default = "false".to_string();
+                let x = properties.get("color").unwrap_or(&default);
+                let value: bool = bool::from_str(x).unwrap();
+                if value {
+                    let string = record.metadata().level().to_string();
+                    let value = match record.metadata().level() {
+                        Level::Error => string.red().to_string(),
+                        Level::Warn => string.yellow().to_string(),
+                        Level::Info => string,
+                        Level::Debug => string.green().to_string(),
+                        Level::Trace => string.cyan().to_string(),
+                    };
+                    return Some(value);
+                }
             }
-        }
 
         Some(record.metadata().level().to_string())
     }
@@ -88,6 +95,7 @@ impl Placeholder for LevelPlaceholder {
     }
 }
 
+/// Returns the Message provided by log::Record
 pub struct MessagePlaceholder;
 
 impl Placeholder for MessagePlaceholder {
@@ -106,6 +114,8 @@ impl Placeholder for MessagePlaceholder {
 }
 
 // %env_{key=''}%
+/// Returns environment keys.
+/// key='' as a property to set the env name
 pub struct EnvPlaceholder;
 
 impl Placeholder for EnvPlaceholder {

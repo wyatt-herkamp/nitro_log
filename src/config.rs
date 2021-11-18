@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-
-
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Serialize};
