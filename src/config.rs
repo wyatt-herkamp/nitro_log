@@ -1,19 +1,22 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::iter::Map;
+
 use log::Level;
-use log::Level::{Trace, Info, Debug, Warn, Error};
-use crate::{Logger, LoggerTree};
-use crate::loggers::LoggerTarget;
-use serde::{Serialize, Deserialize};
+use log::Level::{Debug, Error, Info, Trace, Warn};
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::loggers::console::ConsoleLogger;
+
+use crate::{Logger, LoggerTree};
+use crate::loggers::console::{ConsoleConfig, ConsoleLogger};
+use crate::loggers::file::{FileConfig, FileLogger};
+use crate::loggers::LoggerTarget;
 
 #[derive(Serialize, Deserialize)]
 pub struct TargetConfig {
     #[serde(rename = "type")]
     pub target_type: String,
-    pub properties: HashMap<String, String>,
+    pub properties: HashMap<String, Value>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -39,7 +42,15 @@ fn default_levels() -> Vec<Level> {
 impl From<TargetConfig> for Box<dyn LoggerTarget> {
     fn from(target: TargetConfig) -> Self {
         if target.target_type.eq_ignore_ascii_case("console") {
-            return Box::new(ConsoleLogger::init(target.properties).unwrap());
+            let map = target.properties;
+            let result = serde_json::to_value(map).unwrap();
+            let config: ConsoleConfig = serde_json::from_value(result).unwrap();
+            return Box::new(ConsoleLogger::init(config).unwrap());
+        } else if target.target_type.eq_ignore_ascii_case("file-logger") {
+            let map = target.properties;
+            let result = serde_json::to_value(map).unwrap();
+            let config: FileConfig = serde_json::from_value(result).unwrap();
+            return Box::new(FileLogger::init(config).unwrap());
         } else {
             panic!("Unable to find target {}", target.target_type);
         }

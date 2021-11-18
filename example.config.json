@@ -10,7 +10,8 @@
         }
       ]
     }
-  ], "loggers": [
+  ],
+  "loggers": [
     {
       "module": "normal",
       "targets": [
@@ -18,6 +19,13 @@
           "type": "console",
           "properties": {
             "format": "%module% %level%: %message%"
+          }
+        },
+        {
+          "type": "file-logger",
+          "properties": {
+            "format": "%module% %level%: %message%",
+            "file": "logs/%module%/%level%.log"
           }
         }
       ]

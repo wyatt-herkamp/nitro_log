@@ -1,21 +1,21 @@
-pub mod loggers;
-pub mod error;
-pub mod config;
-pub mod placeholders;
-
-#[macro_use]
-extern crate lazy_static;
-
 use std::collections::HashMap;
 use std::fs::{File, read_to_string};
 use std::path::PathBuf;
+
 use log::{LevelFilter, logger, Metadata, Record, SetLoggerError};
 use regex::Regex;
+
 use crate::config::Config;
 use crate::error::Error;
 use crate::loggers::{Logger, LoggerTarget};
 use crate::loggers::tree::LoggerTree;
 use crate::placeholders::{FindPlaceholder, LevelPlaceholder, MessagePlaceholder, ModulePlaceHolder, Placeholder, Placeholders};
+
+pub mod loggers;
+pub mod error;
+pub mod config;
+pub mod placeholders;
+
 
 pub struct NitroLogger {
     pub loggers: LoggerTree,
@@ -46,11 +46,10 @@ fn load_place_holders(placeholders: Option<Placeholders>) -> Placeholders {
 /// %module% %dateTime_{format=''}% %level%: %message%
 
 impl NitroLogger {
-    pub fn parse_message(&self, logger: &Logger, target: &Box<dyn LoggerTarget>, record: &Record) -> String {
+    pub fn parse_message(string: &String, logger: &Logger, record: &Record, placeholders: &Placeholders) -> String {
         let re = Regex::new("%(?P<value>.+?)%").unwrap();
         let properties = Regex::new("(?P<key>[a-zA-Z0-9]+)=\'(?P<value>.[^\']*)\',?").unwrap();
-        let string = target.format().clone();
-        let mut new_string = target.format().clone();
+        let mut new_string = string.clone();
         for x in re.captures_iter(&string) {
             let og_text = x.get(0).unwrap().as_str().to_string();
             let x1 = x.name("value").unwrap().as_str();
@@ -66,7 +65,7 @@ impl NitroLogger {
             for x in properties.captures_iter(&values) {
                 props.insert(x.name("key").unwrap().as_str().to_string(), x.name("value").unwrap().as_str().to_string());
             }
-            let option = self.placeholders.get_placeholder(name.clone());
+            let option = placeholders.get_placeholder(name.clone());
             if let Some(placeholder) = option {
                 let replacement = placeholder.replace(props, record, logger);
                 new_string = new_string.replace(og_text.as_str(), replacement.as_str());
@@ -93,7 +92,7 @@ impl log::Log for NitroLogger {
         for logger in loggers {
             if logger.levels.contains(&record.metadata().level()) {
                 for x in &logger.targets {
-                    x.log(self.parse_message(logger, x, record));
+                    x.log(record, logger, &self.placeholders);
                 }
             }
         }

@@ -11,7 +11,6 @@ text_trees = { version = "0.1.2" }
 serde_json = "1.0.70"
 serde = { version = "1.0.130", features = ["derive"] }
 regex = "1.5.4"
-lazy_static = "1.4.0"
 [[test]]
 name = "normal"
 harness = false
