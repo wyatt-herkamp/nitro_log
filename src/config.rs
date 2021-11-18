@@ -7,10 +7,10 @@ use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{Logger, LoggerTree};
 use crate::loggers::console::{ConsoleConfig, ConsoleLogger};
 use crate::loggers::file::{FileConfig, FileLogger};
 use crate::loggers::LoggerTarget;
+use crate::{Logger, LoggerTree};
 
 #[derive(Serialize, Deserialize)]
 pub struct TargetConfig {
@@ -37,7 +37,6 @@ pub struct LoggerConfig {
 fn default_levels() -> Vec<Level> {
     vec![Trace, Info, Debug, Warn, Error]
 }
-
 
 impl From<TargetConfig> for Box<dyn LoggerTarget> {
     fn from(target: TargetConfig) -> Self {
@@ -109,6 +108,9 @@ pub struct Config {
 
 impl Config {
     pub fn load(self) -> LoggerTree {
-        LoggerTree::new(to_default_loggers(self.default_loggers), to_loggers(self.loggers))
+        LoggerTree::new(
+            to_default_loggers(self.default_loggers),
+            to_loggers(self.loggers),
+        )
     }
 }

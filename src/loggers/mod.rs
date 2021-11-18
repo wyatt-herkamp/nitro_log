@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
 
-use log::{Level, logger, Record};
 use log::Level::{Info, Warn};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde::de::{MapAccess, Visitor};
+use log::{logger, Level, Record};
 use serde::de::Unexpected::Map;
+use serde::de::{MapAccess, Visitor};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 
 use crate::error::Error;
@@ -15,15 +15,13 @@ use crate::Placeholders;
 
 pub mod console;
 pub mod file;
-pub
-mod tree;
+pub mod tree;
 
 pub struct Logger {
     pub module: String,
     pub levels: Vec<Level>,
     pub targets: Vec<Box<dyn LoggerTarget>>,
 }
-
 
 impl Default for Logger {
     fn default() -> Self {
@@ -45,8 +43,12 @@ impl Logger {
 }
 
 pub trait LoggerTarget: Sync + Send {
-    fn log(&self, record: &Record, logger: &Logger, placeholder: &Placeholders) -> Result<(), Error>;
+    fn log(
+        &self,
+        record: &Record,
+        logger: &Logger,
+        placeholder: &Placeholders,
+    ) -> Result<(), Error>;
     fn name(&self) -> String;
     fn format(&self) -> String;
 }
-

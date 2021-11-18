@@ -1,6 +1,6 @@
-use log::Level::{Info, Warn};
-use crate::Logger;
 use crate::loggers::console::ConsoleLogger;
+use crate::Logger;
+use log::Level::{Info, Warn};
 
 pub struct LoggerTree {
     pub loggers: Vec<Logger>,
@@ -13,10 +13,12 @@ pub struct TreeNode {
     pub children: Vec<TreeNode>,
 }
 
-
 impl LoggerTree {
     pub fn new(root: Vec<Logger>, loggers: Vec<Logger>) -> LoggerTree {
-        let mut logger_tree = LoggerTree { loggers: root, children: vec![] };
+        let mut logger_tree = LoggerTree {
+            loggers: root,
+            children: vec![],
+        };
         for log in loggers {
             let string = log.module.clone();
             logger_tree.add_node_lookup(log, string);

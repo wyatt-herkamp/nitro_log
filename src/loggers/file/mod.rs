@@ -8,9 +8,9 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{NitroLogger, Placeholders};
 use crate::error::Error;
 use crate::loggers::{Logger, LoggerTarget};
+use crate::{NitroLogger, Placeholders};
 
 pub struct FileLogger {
     pub config: FileConfig,
@@ -30,24 +30,28 @@ impl Default for FileLogger {
 }
 
 impl LoggerTarget for FileLogger {
-    fn log(&self, record: &Record, logger: &Logger, placeholder: &Placeholders) -> Result<(), Error> {
+    fn log(
+        &self,
+        record: &Record,
+        logger: &Logger,
+        placeholder: &Placeholders,
+    ) -> Result<(), Error> {
         let message = NitroLogger::parse_message(&self.config.file, logger, record, placeholder);
         let file_split: Vec<&str> = message.split("/").collect();
         let mut path = PathBuf::new();
         for i in 0..(file_split.len() - 1) {
             let x1 = file_split.get(i).unwrap();
-            println!("{}", x1);
             path = path.join(x1);
         }
         create_dir_all(&path);
         path = path.join(file_split.last().unwrap());
-        println!("{:?}", &path);
-        if !path.exists() {
-            File::create(&path)?;
-        }
-        let mut file = OpenOptions::new().append(true).open(&path)?;
-        file.write(b"\n");
-        file.write(NitroLogger::parse_message(&self.config.format,logger, record, placeholder).as_bytes())?;
+        let mut file = if !path.exists() {
+            File::create(&path)?
+        } else {
+            OpenOptions::new().append(true).open(&path)?
+        };
+        let string = NitroLogger::parse_message(&self.config.format, logger, record, placeholder);
+        file.write(format!("{}\n", string).as_bytes())?;
         file.flush()?;
         Ok(())
     }
@@ -61,7 +65,6 @@ impl LoggerTarget for FileLogger {
     }
 }
 
-
 #[derive(Serialize, Deserialize)]
 pub struct FileConfig {
     pub format: String,
@@ -70,6 +73,9 @@ pub struct FileConfig {
 
 impl Default for FileConfig {
     fn default() -> Self {
-        return FileConfig { format: "%module% %level%: %message%".to_string(), file: "log.log".to_string() };
+        return FileConfig {
+            format: "%module% %level%: %message%".to_string(),
+            file: "log.log".to_string(),
+        };
     }
 }

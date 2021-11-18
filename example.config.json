@@ -5,7 +5,7 @@
         {
           "type": "console",
           "properties": {
-            "format": "%module% %date_time{format=''}% %level%: %message%"
+            "format": "%datetime_{format='$Y-$m-$d $H:$M:$S'}% %level%: %message%"
           }
         }
       ]
@@ -18,14 +18,14 @@
         {
           "type": "console",
           "properties": {
-            "format": "%module% %level%: %message%"
+            "format": "[%module%] %level_{color='true'}%: %message%"
           }
         },
         {
           "type": "file-logger",
           "properties": {
-            "format": "%module% %level%: %message%",
-            "file": "logs/%module%/%level%.log"
+            "format": "%datetime_{format='$Y-$m-$d $H:$M:$S'}% %module% %level%: %message%",
+            "file": "logs/%module%/%level%-%datetime_{format='$Y-$m-$d'}%.log"
           }
         }
       ]

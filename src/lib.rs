@@ -1,21 +1,22 @@
 use std::collections::HashMap;
-use std::fs::{File, read_to_string};
+use std::fs::{read_to_string, File};
 use std::path::PathBuf;
 
-use log::{LevelFilter, logger, Metadata, Record, SetLoggerError};
+use log::{logger, LevelFilter, Metadata, Record, SetLoggerError};
 use regex::Regex;
 
 use crate::config::Config;
 use crate::error::Error;
-use crate::loggers::{Logger, LoggerTarget};
 use crate::loggers::tree::LoggerTree;
-use crate::placeholders::{FindPlaceholder, LevelPlaceholder, MessagePlaceholder, ModulePlaceHolder, Placeholder, Placeholders};
-
-pub mod loggers;
-pub mod error;
+use crate::loggers::{Logger, LoggerTarget};
+use crate::placeholders::{
+    EnvPlaceholder, FindPlaceholder, LevelPlaceholder, MessagePlaceholder, ModulePlaceHolder,
+    Placeholder, Placeholders,
+};
 pub mod config;
+pub mod error;
+pub mod loggers;
 pub mod placeholders;
-
 
 pub struct NitroLogger {
     pub loggers: LoggerTree,
@@ -30,8 +31,16 @@ impl NitroLogger {
     pub fn load(config: Config, placeholders: Option<Placeholders>) -> Result<(), Error> {
         return NitroLogger::load_with_loggers(config.load(), placeholders);
     }
-    pub fn load_with_loggers(loggers: LoggerTree, placeholders: Option<Placeholders>) -> Result<(), Error> {
-        log::set_boxed_logger(Box::new(NitroLogger { loggers, placeholders: load_place_holders(placeholders) })).map(|()| log::set_max_level(LevelFilter::Trace)).map_err(|e| Error::SetLoggerError(e))
+    pub fn load_with_loggers(
+        loggers: LoggerTree,
+        placeholders: Option<Placeholders>,
+    ) -> Result<(), Error> {
+        log::set_boxed_logger(Box::new(NitroLogger {
+            loggers,
+            placeholders: load_place_holders(placeholders),
+        }))
+        .map(|()| log::set_max_level(LevelFilter::Trace))
+        .map_err(|e| Error::SetLoggerError(e))
     }
 }
 
@@ -40,13 +49,22 @@ fn load_place_holders(placeholders: Option<Placeholders>) -> Placeholders {
     placeholders.push(Box::new(ModulePlaceHolder));
     placeholders.push(Box::new(MessagePlaceholder));
     placeholders.push(Box::new(LevelPlaceholder));
+    placeholders.push(Box::new(EnvPlaceholder));
+    #[cfg(feature = "time")]
+    placeholders.push(Box::new(crate::placeholders::time::DateTimePlaceholder));
+
     return placeholders;
 }
 
 /// %module% %dateTime_{format=''}% %level%: %message%
 
 impl NitroLogger {
-    pub fn parse_message(string: &String, logger: &Logger, record: &Record, placeholders: &Placeholders) -> String {
+    pub fn parse_message(
+        string: &String,
+        logger: &Logger,
+        record: &Record,
+        placeholders: &Placeholders,
+    ) -> String {
         let re = Regex::new("%(?P<value>.+?)%").unwrap();
         let properties = Regex::new("(?P<key>[a-zA-Z0-9]+)=\'(?P<value>.[^\']*)\',?").unwrap();
         let mut new_string = string.clone();
@@ -63,12 +81,17 @@ impl NitroLogger {
             };
             let mut props = HashMap::new();
             for x in properties.captures_iter(&values) {
-                props.insert(x.name("key").unwrap().as_str().to_string(), x.name("value").unwrap().as_str().to_string());
+                props.insert(
+                    x.name("key").unwrap().as_str().to_string(),
+                    x.name("value").unwrap().as_str().to_string(),
+                );
             }
             let option = placeholders.get_placeholder(name.clone());
             if let Some(placeholder) = option {
                 let replacement = placeholder.replace(props, record, logger);
-                new_string = new_string.replace(og_text.as_str(), replacement.as_str());
+                if let Some(value) = replacement {
+                    new_string = new_string.replace(og_text.as_str(), value.as_str());
+                }
             }
         }
         return new_string;
