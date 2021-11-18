@@ -2,9 +2,9 @@
 pub mod time;
 
 use crate::Logger;
-use log::{Level, Record};
+use log::{Record};
 use std::collections::HashMap;
-use std::str::FromStr;
+
 
 pub type Placeholders = Vec<Box<dyn Placeholder>>;
 
@@ -40,9 +40,9 @@ pub struct ModulePlaceHolder;
 impl Placeholder for ModulePlaceHolder {
     fn replace(
         &self,
-        properties: HashMap<String, String>,
+        _properties: HashMap<String, String>,
         record: &Record,
-        logger: &Logger,
+        _logger: &Logger,
     ) -> Option<String> {
         Some(record.module_path().unwrap().to_string())
     }
@@ -57,9 +57,9 @@ pub struct LevelPlaceholder;
 impl Placeholder for LevelPlaceholder {
     fn replace(
         &self,
-        properties: HashMap<String, String>,
+        _properties: HashMap<String, String>,
         record: &Record,
-        logger: &Logger,
+        _logger: &Logger,
     ) -> Option<String> {
         #[cfg(feature = "colors")]
         {
@@ -93,9 +93,9 @@ pub struct MessagePlaceholder;
 impl Placeholder for MessagePlaceholder {
     fn replace(
         &self,
-        properties: HashMap<String, String>,
+        _properties: HashMap<String, String>,
         record: &Record,
-        logger: &Logger,
+        _logger: &Logger,
     ) -> Option<String> {
         Some(record.args().to_string())
     }
@@ -112,8 +112,8 @@ impl Placeholder for EnvPlaceholder {
     fn replace(
         &self,
         properties: HashMap<String, String>,
-        record: &Record,
-        logger: &Logger,
+        _record: &Record,
+        _logger: &Logger,
     ) -> Option<String> {
         let option = properties.get("key");
         if option.is_none() {

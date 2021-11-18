@@ -1,16 +1,16 @@
-use std::collections::HashMap;
-use std::fmt;
-use std::hash::Hash;
 
-use log::Level::{Info, Warn};
-use log::{logger, Level, Record};
-use serde::de::Unexpected::Map;
-use serde::de::{MapAccess, Visitor};
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::Value;
+
+
+
+
+use log::{Level, Record};
+
+
+
+
 
 use crate::error::Error;
-use crate::loggers::console::{ConsoleConfig, ConsoleLogger};
+use crate::loggers::console::{ConsoleLogger};
 use crate::Placeholders;
 
 pub mod console;

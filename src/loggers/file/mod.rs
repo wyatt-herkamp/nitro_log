@@ -1,12 +1,12 @@
-use std::collections::HashMap;
+
 use std::fs::{create_dir_all, File, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
 use log::Record;
-use regex::Regex;
+
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+
 
 use crate::error::Error;
 use crate::loggers::{Logger, LoggerTarget};
@@ -43,7 +43,7 @@ impl LoggerTarget for FileLogger {
             let x1 = file_split.get(i).unwrap();
             path = path.join(x1);
         }
-        create_dir_all(&path);
+        create_dir_all(&path)?;
         path = path.join(file_split.last().unwrap());
         let mut file = if !path.exists() {
             File::create(&path)?

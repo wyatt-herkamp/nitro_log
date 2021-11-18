@@ -1,6 +1,5 @@
-use crate::loggers::console::ConsoleLogger;
 use crate::Logger;
-use log::Level::{Info, Warn};
+
 
 pub struct LoggerTree {
     pub loggers: Vec<Logger>,
@@ -57,9 +56,6 @@ impl LoggerTree {
         self.add_child(node);
         return self.add_node_lookup(logger, path);
     }
-    fn add_logger(&mut self, logger: Logger) {
-        self.loggers.push(logger);
-    }
     fn add_child(&mut self, node: TreeNode) {
         self.children.push(node);
     }
@@ -105,31 +101,37 @@ impl TreeNode {
         self.children.push(node);
     }
 }
+#[cfg(test)]
+mod test {
+    use log::Level::{Info, Warn};
+    use crate::{Logger, LoggerTree};
+    use crate::loggers::console::ConsoleLogger;
 
-#[test]
-fn basic() {
-    let mut loggers = Vec::new();
-    loggers.push(Logger {
-        module: "nitro::repo::maven".to_string(),
-        levels: vec![Info],
-        targets: vec![Box::new(ConsoleLogger::default())],
-    });
-    loggers.push(Logger {
-        module: "nitro::repo".to_string(),
-        levels: vec![Info],
-        targets: vec![Box::new(ConsoleLogger::default())],
-    });
-    loggers.push(Logger {
-        module: "nitro::repo::maven".to_string(),
-        levels: vec![Warn],
-        targets: vec![Box::new(ConsoleLogger::default())],
-    });
-    loggers.push(Logger {
-        module: "nitro::system".to_string(),
-        levels: vec![Info],
-        targets: vec![Box::new(ConsoleLogger::default())],
-    });
-    let tree = LoggerTree::new(vec![Default::default()], loggers);
-    let option = tree.find_logger(&"nitro::repo::maven".to_string()).unwrap();
-    assert_eq!(option.len(), 2)
+    #[test]
+    fn basic() {
+        let mut loggers = Vec::new();
+        loggers.push(Logger {
+            module: "nitro::repo::maven".to_string(),
+            levels: vec![Info],
+            targets: vec![Box::new(ConsoleLogger::default())],
+        });
+        loggers.push(Logger {
+            module: "nitro::repo".to_string(),
+            levels: vec![Info],
+            targets: vec![Box::new(ConsoleLogger::default())],
+        });
+        loggers.push(Logger {
+            module: "nitro::repo::maven".to_string(),
+            levels: vec![Warn],
+            targets: vec![Box::new(ConsoleLogger::default())],
+        });
+        loggers.push(Logger {
+            module: "nitro::system".to_string(),
+            levels: vec![Info],
+            targets: vec![Box::new(ConsoleLogger::default())],
+        });
+        let tree = LoggerTree::new(vec![Default::default()], loggers);
+        let option = tree.find_logger(&"nitro::repo::maven".to_string()).unwrap();
+        assert_eq!(option.len(), 2)
+    }
 }

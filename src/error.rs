@@ -1,3 +1,4 @@
+use std::fmt::{Display, Formatter};
 use log::SetLoggerError;
 
 #[derive(Debug)]
@@ -6,7 +7,11 @@ pub enum Error {
     IOError(std::io::Error),
     SerdeJson(serde_json::Error),
 }
-
+impl Display for Error{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
 impl From<SetLoggerError> for Error {
     fn from(e: SetLoggerError) -> Self {
         return Error::SetLoggerError(e);
