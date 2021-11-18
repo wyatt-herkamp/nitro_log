@@ -1,11 +1,12 @@
 {
   "default_loggers": [
     {
+      "levels": ["DEBUG","INFO", "WARN", "ERROR"],
       "targets": [
         {
           "type": "console",
           "properties": {
-            "format": "%datetime_{format='$Y-$m-$d $H:$M:$S'}% %level%: %message%"
+            "format": "%module% %level_{color='true'}%: %message%"
           }
         }
       ]
@@ -13,7 +14,7 @@
   ],
   "loggers": [
     {
-      "module": "normal",
+      "module": "test",
       "targets": [
         {
           "type": "console",
