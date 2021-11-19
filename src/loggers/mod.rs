@@ -12,6 +12,7 @@ pub struct Logger {
     pub module: String,
     pub levels: Vec<Level>,
     pub targets: Vec<Box<dyn LoggerTarget>>,
+    pub always_execute: bool,
 }
 
 impl Default for Logger {
@@ -20,6 +21,7 @@ impl Default for Logger {
             module: "".to_string(),
             levels: vec![],
             targets: vec![Box::new(ConsoleLogger::default())],
+            always_execute: false
         };
     }
 }

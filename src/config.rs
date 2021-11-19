@@ -22,6 +22,8 @@ pub struct DefaultLogger {
     #[serde(default = "default_levels")]
     pub levels: Vec<Level>,
     pub targets: Vec<TargetConfig>,
+    #[serde(default = "always_execute_default")]
+    pub always_execute: bool,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -30,10 +32,16 @@ pub struct LoggerConfig {
     #[serde(default = "default_levels")]
     pub levels: Vec<Level>,
     pub targets: Vec<TargetConfig>,
+    #[serde(default = "always_execute_default")]
+    pub always_execute: bool,
 }
 
 fn default_levels() -> Vec<Level> {
     vec![Trace, Info, Debug, Warn, Error]
+}
+
+fn always_execute_default() -> bool {
+    false
 }
 
 impl From<TargetConfig> for Box<dyn LoggerTarget> {
@@ -68,6 +76,7 @@ impl From<DefaultLogger> for Logger {
             module: "".to_string(),
             levels: logger.levels,
             targets: to_targets(logger.targets),
+            always_execute: logger.always_execute,
         };
     }
 }
@@ -78,6 +87,7 @@ impl From<LoggerConfig> for Logger {
             module: logger.module,
             levels: logger.levels,
             targets: to_targets(logger.targets),
+            always_execute: logger.always_execute,
         };
     }
 }
