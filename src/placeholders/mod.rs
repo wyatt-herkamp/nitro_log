@@ -59,7 +59,7 @@ impl Placeholder for ModulePlaceHolder {
     }
 
     fn replace_file(&self, _properties: HashMap<String, String>, record: &Record, _logger: &Logger) -> Option<String> {
-        Some(record.module_path().unwrap().to_string().replace("::", &std::path::MAIN_SEPARATOR.to_string()))
+        Some(record.module_path().unwrap().to_string().replace("::", "/"))
     }
 
     fn name(&self) -> &'static str {
