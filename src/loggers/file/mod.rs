@@ -34,7 +34,7 @@ impl LoggerTarget for FileLogger {
         logger: &Logger,
         placeholder: &Placeholders,
     ) -> Result<(), Error> {
-        let message = sanitize_filename::sanitize(NitroLogger::parse_message(&self.config.file, logger, record, placeholder));
+        let message = sanitize_filename::sanitize(NitroLogger::parse_message(&self.config.file, logger, record, placeholder,true));
         let file_split: Vec<&str> = message.split("/").collect();
         let mut path = PathBuf::new();
         for i in 0..(file_split.len() - 1) {
@@ -48,7 +48,7 @@ impl LoggerTarget for FileLogger {
         } else {
             OpenOptions::new().append(true).open(&path)?
         };
-        let string = NitroLogger::parse_message(&self.config.format, logger, record, placeholder);
+        let string = NitroLogger::parse_message(&self.config.format, logger, record, placeholder,false);
         file.write(format!("{}\n", string).as_bytes())?;
         file.flush()?;
         Ok(())

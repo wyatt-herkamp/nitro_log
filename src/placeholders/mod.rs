@@ -8,11 +8,11 @@ use std::collections::HashMap;
 pub type Placeholders = Vec<Box<dyn Placeholder>>;
 
 pub trait FindPlaceholder {
-    fn get_placeholder(&self, name: String) -> Option<&Box<dyn Placeholder>>;
+    fn get_placeholder(&self, name:  &str) -> Option<&Box<dyn Placeholder>>;
 }
 
 impl FindPlaceholder for Placeholders {
-    fn get_placeholder(&self, name: String) -> Option<&Box<dyn Placeholder>> {
+    fn get_placeholder(&self, name: &str) -> Option<&Box<dyn Placeholder>> {
         for x in self {
             if name.eq(x.name()) {
                 return Some(x);
@@ -33,6 +33,14 @@ pub trait Placeholder: Sync + Send {
         record: &Record,
         logger: &Logger,
     ) -> Option<String>;
+    /// Called when replacing the placeholder for a file
+    /// Will handle removing bad file characters
+    fn replace_file(
+        &self,
+        properties: HashMap<String, String>,
+        record: &Record,
+        logger: &Logger,
+    ) -> Option<String>;
     /// Gets the Name of the PlaceHolder
     fn name(&self) -> &'static str;
 }
@@ -48,6 +56,10 @@ impl Placeholder for ModulePlaceHolder {
         _logger: &Logger,
     ) -> Option<String> {
         Some(record.module_path().unwrap().to_string())
+    }
+
+    fn replace_file(&self, _properties: HashMap<String, String>, record: &Record, _logger: &Logger) -> Option<String> {
+        Some(record.module_path().unwrap().to_string().replace("::", &std::path::MAIN_SEPARATOR.to_string()))
     }
 
     fn name(&self) -> &'static str {
@@ -90,6 +102,10 @@ impl Placeholder for LevelPlaceholder {
         Some(record.metadata().level().to_string())
     }
 
+    fn replace_file(&self, _properties: HashMap<String, String>, record: &Record, _logger: &Logger) -> Option<String> {
+        Some(record.metadata().level().to_string())
+    }
+
     fn name(&self) -> &'static str {
         return "level";
     }
@@ -106,6 +122,10 @@ impl Placeholder for MessagePlaceholder {
         _logger: &Logger,
     ) -> Option<String> {
         Some(record.args().to_string())
+    }
+
+    fn replace_file(&self, _properties: HashMap<String, String>, _record: &Record, _logger: &Logger) -> Option<String> {
+        return None;
     }
 
     fn name(&self) -> &'static str {
@@ -135,6 +155,19 @@ impl Placeholder for EnvPlaceholder {
             return None;
         }
         return Some(result.unwrap());
+    }
+
+    fn replace_file(&self, properties: HashMap<String, String>, _record: &Record, _logger: &Logger) -> Option<String> {
+        let option = properties.get("key");
+        if option.is_none() {
+            return None;
+        }
+        let key = option.unwrap();
+        let result = std::env::var(key);
+        if result.is_err() {
+            return None;
+        }
+        return Some(sanitize_filename::sanitize(result.unwrap()));
     }
 
     fn name(&self) -> &'static str {

@@ -21,6 +21,12 @@ impl Placeholder for DateTimePlaceholder {
         Some(Local::now().format(&x).to_string())
     }
 
+    fn replace_file(&self, properties: HashMap<String, String>, _record: &Record, _logger: &Logger) -> Option<String> {
+        let time = DEFAULT.to_string();
+        let x = properties.get("format").unwrap_or(&time).replace("$", "%");
+        Some(sanitize_filename::sanitize(Local::now().format(&x).to_string()))
+    }
+
     fn name(&self) -> &'static str {
         return "datetime";
     }

@@ -13,6 +13,7 @@ use crate::placeholders::{
     EnvPlaceholder, FindPlaceholder, LevelPlaceholder, MessagePlaceholder, ModulePlaceHolder,
     Placeholders,
 };
+use lazy_static::lazy_static;
 
 pub mod config;
 pub mod error;
@@ -40,8 +41,8 @@ impl NitroLogger {
             loggers,
             placeholders: load_place_holders(placeholders),
         }))
-        .map(|()| log::set_max_level(LevelFilter::Trace))
-        .map_err(|e| Error::SetLoggerError(e))
+            .map(|()| log::set_max_level(LevelFilter::Trace))
+            .map_err(|e| Error::SetLoggerError(e))
     }
 }
 
@@ -52,7 +53,7 @@ fn load_place_holders(placeholders: Option<Placeholders>) -> Placeholders {
     placeholders.push(Box::new(LevelPlaceholder));
     placeholders.push(Box::new(EnvPlaceholder));
     #[cfg(feature = "time")]
-    placeholders.push(Box::new(crate::placeholders::time::DateTimePlaceholder));
+        placeholders.push(Box::new(crate::placeholders::time::DateTimePlaceholder));
 
     return placeholders;
 }
@@ -60,16 +61,21 @@ fn load_place_holders(placeholders: Option<Placeholders>) -> Placeholders {
 /// %module% %dateTime_{format=''}% %level%: %message%
 
 impl NitroLogger {
+    /// This is the code that parses and calls placeholders.
+    /// I know it is ugly. However, I am not skilled with String parsing.
     pub fn parse_message(
         string: &String,
         logger: &Logger,
         record: &Record,
         placeholders: &Placeholders,
+        file: bool,
     ) -> String {
-        let re = Regex::new("%(?P<value>.+?)%").unwrap();
-        let properties = Regex::new("(?P<key>[a-zA-Z0-9]+)=\'(?P<value>.[^\']*)\',?").unwrap();
+        lazy_static! {
+            static ref PLACEHOLDER : Regex= Regex::new("%(?P<value>.+?)%").unwrap();
+            static ref  PROPERTIES_REGEX : Regex = Regex::new("(?P<key>[a-zA-Z0-9]+)=\'(?P<value>.[^\']*)\',?").unwrap();
+        }
         let mut new_string = string.clone();
-        for x in re.captures_iter(&string) {
+        for x in PLACEHOLDER.captures_iter(&string) {
             let og_text = x.get(0).unwrap().as_str().to_string();
             let x1 = x.name("value").unwrap().as_str();
             let split: Vec<&str> = x1.split("_{").collect();
@@ -80,16 +86,20 @@ impl NitroLogger {
             } else {
                 (x1.to_string(), "".to_string())
             };
-            let mut props = HashMap::new();
-            for x in properties.captures_iter(&values) {
+            let mut props = HashMap::<String, String>::new();
+            for x in PROPERTIES_REGEX.captures_iter(&values) {
                 props.insert(
                     x.name("key").unwrap().as_str().to_string(),
                     x.name("value").unwrap().as_str().to_string(),
                 );
             }
-            let option = placeholders.get_placeholder(name.clone());
+            let option = placeholders.get_placeholder(&name);
             if let Some(placeholder) = option {
-                let replacement = placeholder.replace(props, record, logger);
+                let replacement = if file {
+                    placeholder.replace_file(props, record, logger)
+                } else {
+                    placeholder.replace(props, record, logger)
+                };
                 if let Some(value) = replacement {
                     new_string = new_string.replace(og_text.as_str(), value.as_str());
                 }

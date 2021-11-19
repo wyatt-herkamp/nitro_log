@@ -128,9 +128,15 @@ mod test {
             module: "nitro::system".to_string(),
             levels: vec![Info],
             targets: vec![Box::new(ConsoleLogger::default())],
+        });        loggers.push(Logger {
+            module: "nitro".to_string(),
+            levels: vec![Info],
+            targets: vec![Box::new(ConsoleLogger::default())],
         });
         let tree = LoggerTree::new(vec![Default::default()], loggers);
         let option = tree.find_logger(&"nitro::repo::maven".to_string()).unwrap();
-        assert_eq!(option.len(), 2)
+        assert_eq!(option.len(), 2);
+        assert_eq!(tree.find_logger(&"nitro::repo::npm".to_string()).unwrap().len(), 1);
+        assert_eq!(tree.find_logger(&"nitro::test::test".to_string()).unwrap().len(), 1);
     }
 }

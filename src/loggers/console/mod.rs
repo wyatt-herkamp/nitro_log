@@ -33,7 +33,7 @@ impl LoggerTarget for ConsoleLogger {
     ) -> Result<(), Error> {
         println!(
             "{}",
-            NitroLogger::parse_message(&self.format, logger, record, placeholder)
+            NitroLogger::parse_message(&self.format, logger, record, placeholder,false)
         );
         Ok(())
     }
