@@ -111,13 +111,21 @@ impl NitroLogger {
 
 impl log::Log for NitroLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
-        println!("Target: {}", metadata.target());
+        let option = self.loggers.find_logger(&metadata.target());
+        if option.is_none() {
+            return false;
+        }
+        let loggers = option.unwrap();
+        for logger in loggers {
+            if logger.levels.contains(&metadata.level()) {
+                return true;
+            }
+        }
         return true;
     }
 
     fn log(&self, record: &Record) {
-        let string = record.module_path().unwrap().to_string();
-        let option = self.loggers.find_logger(&string);
+        let option = self.loggers.find_logger(&record.module_path().unwrap());
         if option.is_none() {
             panic!("No Loggers Found!");
         }
@@ -134,7 +142,5 @@ impl log::Log for NitroLogger {
         }
     }
 
-    fn flush(&self) {
-        println!("Flushing!");
-    }
+    fn flush(&self) {}
 }

@@ -14,7 +14,7 @@
   ],
   "loggers": [
     {
-      "module": "test",
+      "module": "normal",
       "targets": [
         {
           "type": "console",

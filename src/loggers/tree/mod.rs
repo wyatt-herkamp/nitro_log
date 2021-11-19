@@ -23,7 +23,7 @@ impl LoggerTree {
         }
         return logger_tree;
     }
-    pub fn find_logger(&self, path: &String) -> Option<Vec<&Logger>> {
+    pub fn find_logger(&self, path: &str) -> Option<Vec<&Logger>> {
         let mut loggers = Vec::new();
         let mut paths: Vec<&str> = path.split("::").collect();
         if paths.len() == 0 {
@@ -179,8 +179,8 @@ mod test {
         let tree = LoggerTree::new(vec![Default::default()], loggers);
         let option = tree.find_logger(&"nitro::repo::maven".to_string()).unwrap();
         assert_eq!(option.len(), 2);
-        assert_eq!(tree.find_logger(&"nitro::repo::npm".to_string()).unwrap().len(), 1);
-        assert_eq!(tree.find_logger(&"nitro::test::test".to_string()).unwrap().len(), 1);
-        assert_eq!(tree.find_logger(&"nitro::system::admin".to_string()).unwrap().len(), 2);
+        assert_eq!(tree.find_logger("nitro::repo::npm").unwrap().len(), 1);
+        assert_eq!(tree.find_logger("nitro::test::test").unwrap().len(), 1);
+        assert_eq!(tree.find_logger("nitro::system::admin").unwrap().len(), 2);
     }
 }
