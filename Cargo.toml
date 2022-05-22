@@ -26,6 +26,3 @@ anyhow = "1.0.57"
 [features]
 time = ["chrono"]
 colors = ["colored"]
-[[test]]
-name = "normal"
-harness = false

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::vec::IntoIter;
 
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
@@ -7,7 +8,7 @@ use serde_json::Value;
 
 
 use crate::loggers::LoggerTarget;
-use crate::{Logger, LoggerTree};
+use crate::{Logger, LoggerBuilders, LoggerTree};
 
 /// Target Config
 #[derive(Serialize, Deserialize)]
@@ -19,23 +20,11 @@ pub struct TargetConfig {
     pub properties: HashMap<String, Value>,
 }
 
-/// For Default Loggers
-#[derive(Serialize, Deserialize)]
-pub struct DefaultLogger {
-    /// Levels To Log
-    #[serde(default = "default_levels")]
-    pub levels: Vec<Level>,
-    /// Targets
-    pub targets: Vec<TargetConfig>,
-    /// Do you want this to always execute
-    #[serde(default = "always_execute_default")]
-    pub always_execute: bool,
-}
 
 /// For Loggers with modules
 #[derive(Serialize, Deserialize)]
 pub struct LoggerConfig {
-    pub module: String,
+    pub module: Option<String>,
     /// Levels
     #[serde(default = "default_levels")]
     pub levels: Vec<Level>,
@@ -59,15 +48,46 @@ fn always_execute_default() -> bool {
 }
 
 
-
-
-
-
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     /// All the loggers
     pub loggers: Vec<LoggerConfig>,
     ///Default Loggers
-    pub default_loggers: Vec<DefaultLogger>,
+    pub root_loggers: Vec<LoggerConfig>,
 }
 
+pub fn create_loggers(config: Config, builders: LoggerBuilders) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
+    return Ok((create_logger(config.root_loggers.into_iter(), &builders)?, create_logger(config.loggers.into_iter(), &builders)?));
+}
+
+fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> Result<Vec<Logger>, crate::Error> {
+    let mut values = Vec::new();
+    for logger in loggers {
+        let mut targets = Vec::new();
+        for target in logger.targets {
+            targets.push(create_target(target, &builders)?);
+        }
+        values.push(Logger {
+            module: logger.module,
+            levels: logger.levels,
+            targets,
+            always_execute: logger.always_execute,
+        });
+    }
+    Ok(values)
+}
+
+fn create_target(target: TargetConfig, builders: &LoggerBuilders) -> Result<Box<dyn LoggerTarget>, crate::Error> {
+    if let Some(target_builder) = builders.targets.iter().find(|target_builder| target_builder.name().eq(&target.target_type)) {
+        match target_builder.build(target.properties, &builders.placeholders) {
+            Ok(value) => {
+                Ok(value)
+            }
+            Err(error) => {
+                Err(error)
+            }
+        }
+    } else {
+        todo!("Implement Error Handler here")
+    }
+}

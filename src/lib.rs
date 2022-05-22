@@ -8,12 +8,13 @@ use regex::Regex;
 use crate::config::Config;
 use crate::error::Error;
 use crate::loggers::tree::LoggerTree;
-use crate::loggers::Logger;
+use crate::loggers::{default_logger_targets, Logger, LoggerTargetBuilders};
 
 use lazy_static::lazy_static;
 use log::kv::source::as_map;
 use log::kv::{Key, Source, Value, Visitor};
-use crate::placeholder::{PlaceHolder, PlaceHolders};
+use crate::placeholder::{default_placeholders, PlaceHolder, PlaceHolders};
+use crate::placeholder::standard_placeholders::{MessagePlaceholderBuilder, LevelPlaceHolderBuilder, ModulePlaceHolderBuilder};
 
 pub mod config;
 pub mod error;
@@ -22,24 +23,36 @@ pub mod format;
 pub mod loggers;
 pub mod placeholder;
 
+pub struct LoggerBuilders {
+    pub placeholders: PlaceHolders,
+    pub targets: LoggerTargetBuilders,
+}
+
+impl Default for LoggerBuilders {
+    fn default() -> Self {
+        LoggerBuilders {
+            placeholders: default_placeholders(),
+            targets: default_logger_targets(),
+        }
+    }
+}
+
 pub struct NitroLogger {
     pub loggers: LoggerTree,
 }
 
 impl NitroLogger {
-    pub fn load_file(config: PathBuf, placeholders: Option<PlaceHolders>) -> Result<(), Error> {
+    pub fn load_file(config: PathBuf, builders: LoggerBuilders) -> Result<(), Error> {
         let config: Config = serde_json::from_reader(File::open(config)?)?;
-        NitroLogger::load(config, placeholders)
+        NitroLogger::load(config, builders)
     }
-    pub fn load(config: Config, placeholders: Option<PlaceHolders>) -> Result<(), Error> {
-        todo!()
-        //  return NitroLogger::load_with_loggers(config.load(), placeholders);
+    pub fn load(config: Config,builders: LoggerBuilders) -> Result<(), Error> {
+        let (root, loggers) = config::create_loggers(config, builders)?;
+        Self::new(LoggerTree::new(root, loggers))
+
     }
-    pub fn load_with_loggers(
-        loggers: LoggerTree,
-        placeholders: Option<PlaceHolders>,
-    ) -> Result<(), Error> {
-        let vec = load_place_holders(placeholders);
+    pub fn new(
+        loggers: LoggerTree) -> Result<(), Error> {
         log::set_boxed_logger(Box::new(NitroLogger {
             loggers,
         }))
@@ -48,12 +61,6 @@ impl NitroLogger {
     }
 }
 
-fn load_place_holders(placeholders: Option<PlaceHolders>) -> PlaceHolders {
-    let mut placeholders = placeholders.unwrap_or(Vec::new());
-
-
-    return placeholders;
-}
 
 impl log::Log for NitroLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {

@@ -1,12 +1,12 @@
 {
-  "default_loggers": [
+  "root_loggers": [
     {
       "levels": ["DEBUG","INFO", "WARN", "ERROR"],
       "targets": [
         {
           "type": "console",
           "properties": {
-            "format": "%module% %level_{color='true'}%: %message%"
+            "format": "[{{module({})}}] {{level({})}}: {{message}}"
           }
         }
       ]
@@ -14,19 +14,12 @@
   ],
   "loggers": [
     {
-      "module": "normal",
+      "module": "logger_tests",
       "targets": [
         {
           "type": "console",
           "properties": {
-            "format": "[%module%] %level_{color='true'}%: %message%"
-          }
-        },
-        {
-          "type": "file-logger",
-          "properties": {
-            "format": "%datetime_{format='$Y-$m-$d $H:$M:$S'}% %module% %level%: %message%",
-            "file": "logs/%module%/%level%-%datetime_{format='$Y-$m-$d'}%.log"
+            "format": "[{{module({})}}] {{level({})}}: {{message}}"
           }
         }
       ]

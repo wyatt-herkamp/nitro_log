@@ -8,6 +8,15 @@ use crate::Error;
 
 pub type PlaceHolders = Vec<Box<dyn PlaceHolderBuilder>>;
 
+pub fn default_placeholders() -> PlaceHolders {
+    let mut placeholders: PlaceHolders = Vec::new();
+    placeholders.push(Box::new(standard_placeholders::MessagePlaceholderBuilder {}));
+    placeholders.push(Box::new(standard_placeholders::LevelPlaceHolderBuilder {}));
+    placeholders.push(Box::new(standard_placeholders::ModulePlaceHolderBuilder {}));
+
+    return placeholders;
+}
+
 pub trait PlaceHolderBuilder {
     fn name(&self) -> String;
     fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error>;

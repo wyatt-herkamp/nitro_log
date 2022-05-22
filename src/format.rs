@@ -32,8 +32,8 @@ pub enum FormatSection {
 impl Format {
     /// {{ placeholder({"format": "", "key": ""}) }}
     /// {{ variable.name }}
-    /// Example format `Important Log Message Here  {{level({"color": true })}} {{ repository.name }}: {{message}}!!!`
-    pub fn new(placeholders: &Vec<Box<dyn PlaceHolderBuilder>>, format: &str) -> Result<Format, FormatError> where {
+    /// Example format `Important Log Message Here  {{level({"color": true })}} {{ repository.name }}: {{message({})}}!!!`
+    pub fn new(placeholders: &Vec<Box<dyn PlaceHolderBuilder>>, format: &str, path_safe: bool) -> Result<Format, FormatError> where {
         let special_call_parse: Regex = Regex::new("\\{\\{(?P<key>.+?)(?P<PlaceHolder>[(](?P<settings>.+?)?[)])?}}+").unwrap();
 
         let mut matches = special_call_parse.captures_iter(&format);
@@ -44,7 +44,8 @@ impl Format {
                 let key = capture.name("key").ok_or_else(|| FormatError::MissingKey("Missing Key".to_string()))?;
                 let special_call = if capture.name("PlaceHolder").is_some() {
                     let settings = if let Some(settings) = capture.name("settings") {
-                        let values: HashMap<String, Value> = serde_json::from_str(settings.as_str()).map_err(|error| FormatError::SettingParseError(error))?;
+                        let mut values: HashMap<String, Value> = serde_json::from_str(settings.as_str()).map_err(|error| FormatError::SettingParseError(error))?;
+                        values.insert("path".to_string(), Value::Bool(path_safe));
                         Some(values)
                     } else {
                         None

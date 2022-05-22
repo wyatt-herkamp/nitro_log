@@ -1,50 +1,44 @@
+use std::collections::HashMap;
 use std::env::var;
 use std::io::{stdout, Stdout, Write};
 use log::Record;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
-use crate::loggers::{Logger, LoggerTarget};
+use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, write_log_standard};
 use crate::{Error, NitroLogger, PlaceHolders};
 use crate::format::{Format, FormatError, FormatSection};
+
+pub struct ConsoleLoggerBuilder;
+
+impl LoggerTargetBuilder for ConsoleLoggerBuilder {
+    fn name(&self) -> String {
+        "console".to_string()
+    }
+
+    fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
+        let logger = ConsoleLogger {
+            format: Format::new(placeholders, &value.get("format").unwrap().to_string(), false)?,
+            console: stdout(),
+        };
+        Ok(Box::new(logger))
+    }
+}
 
 pub struct ConsoleLogger {
     pub format: Format,
     pub console: Stdout,
 }
 
-impl ConsoleLogger {
-    pub fn init(placeholders: &PlaceHolders, config: ConsoleConfig) -> Result<ConsoleLogger, Error> {
-        let logger = ConsoleLogger {
-            format: Format::new(placeholders, &config.format)?,
-            console: stdout(),
-        };
-        return Ok(logger);
-    }
-}
 
 
 impl LoggerTarget for ConsoleLogger {
     fn log(
         &self,
         record: &Record,
-    ) -> Result<(), Error> {
-        let mut out = stdout().lock();
-        for x in self.format.format {
-            match x {
-                FormatSection::Text(value) => {
-                    out.write_all(value.as_bytes())?;
-                }
-                FormatSection::Variable(variable) => {
-                    out.write_all(format!("Coming Soon {}", variable).as_bytes())?;
-                }
-                FormatSection::Placeholder(placeholder) => {
-                    out.write_all(placeholder.build_message(&record).as_bytes())?;
-                }
-            }
-        }
-        out.write_all("\n".as_bytes())?;
-        out.flush()?;
-        Ok(())
+    ) -> anyhow::Result<()> {
+        let mut out = self.console.lock();
+        write_log_standard(&mut out, &self.format, record)
     }
 
     fn name(&self) -> String {

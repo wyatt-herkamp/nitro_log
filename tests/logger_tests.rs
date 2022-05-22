@@ -1,6 +1,6 @@
 use log::{as_serde, error, info, log_enabled, trace, warn};
 
-use nitro_log::NitroLogger;
+use nitro_log::{LoggerBuilders, NitroLogger};
 
 use std::path::PathBuf;
 use log::Level::{Info, Trace};
@@ -10,12 +10,12 @@ use serde::{Deserialize, Serialize};
 pub struct KvTest {
     pub hi: String,
 }
-
-fn main() {
+#[test]
+fn test() {
     let test = KvTest {
         hi: "My Value".to_string()
     };
-    NitroLogger::load_file(PathBuf::new().join("example.config.json"), None).unwrap();
+    NitroLogger::load_file(PathBuf::new().join("example.config.json"), LoggerBuilders::default()).unwrap();
     if log_enabled!(Trace) {
         trace!(value = as_serde!(test); "Trace HEY");
     }
