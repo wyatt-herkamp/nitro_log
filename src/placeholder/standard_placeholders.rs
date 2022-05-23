@@ -1,4 +1,7 @@
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter};
+use log::kv::Source;
+use log::Record;
 use serde_json::Value;
 use crate::{Error, PlaceHolder};
 use crate::placeholder::PlaceHolderBuilder;
@@ -11,7 +14,17 @@ impl PlaceHolderBuilder for MessagePlaceholderBuilder {
     }
 
     fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
-        todo!()
+        Ok(Box::new(MessagePlaceholder {}))
+    }
+}
+
+#[derive(Debug)]
+pub struct MessagePlaceholder;
+
+
+impl PlaceHolder for MessagePlaceholder {
+    fn build_message<'a>(&self, record: &'a Record) -> &'a str {
+        record.args().as_str().unwrap()
     }
 }
 
@@ -23,7 +36,17 @@ impl PlaceHolderBuilder for LevelPlaceHolderBuilder {
     }
 
     fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
-        todo!()
+        Ok(Box::new(LevelPlaceHolder))
+    }
+}
+
+#[derive(Debug)]
+pub struct LevelPlaceHolder;
+
+
+impl PlaceHolder for LevelPlaceHolder {
+    fn build_message<'a>(&self, record: &'a Record) -> &'a str {
+        record.level().as_str()
     }
 }
 
@@ -35,6 +58,20 @@ impl PlaceHolderBuilder for ModulePlaceHolderBuilder {
     }
 
     fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
-        todo!()
+        if let Some(value) = value {
+            if value.get("path-safe").and_then(|value| value.as_bool()).unwrap_or(false) {
+                todo!("Path Safe is not implemented for this type")
+            }
+        }
+        Ok(Box::new(ModulePlaceHolder {}))
+    }
+}
+
+#[derive(Debug)]
+pub struct ModulePlaceHolder;
+
+impl PlaceHolder for ModulePlaceHolder {
+    fn build_message<'a>(&self, record: &'a Record) -> &'a str {
+        record.module_path().unwrap_or("")
     }
 }

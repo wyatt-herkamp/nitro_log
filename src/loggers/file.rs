@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
-use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, write_log_standard};
+use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, LoggerWriter};
 use crate::{NitroLogger, PlaceHolders};
 use crate::format::{Format, FormatSection};
 
@@ -23,7 +23,6 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
 
     fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
         let logger = FileLogger {
-            content_format: Format::new(placeholders, &value.get("format").unwrap().to_string(), false)?,
             file_format: Format::new(placeholders, &value.get("file").unwrap().to_string(), true)?
         };
         Ok(Box::new(logger))
@@ -31,38 +30,32 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
 }
 
 pub struct FileLogger {
-    pub content_format: Format,
     pub file_format: Format,
 }
 
 
-
-
 impl LoggerTarget for FileLogger {
-    fn log(
-        &self,
-        record: &Record,
-    ) -> anyhow::Result<()> {
+    fn start_write<'a>(&'a self, record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
         let mut file = OpenOptions::new().create(true).append(true).open(generate_path(&self.file_format, record)?)?;
-        write_log_standard(&mut file, &self.content_format, record)?;
-        Ok(())
+        Ok(LoggerWriter{
+            writer: Box::new(file),
+            logger: Box::new(self)
+        })
     }
 
-    fn name(&self) -> String {
-        return "file-logger".to_string();
+    fn return_write(& self, write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+        Ok(())
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct FileConfig {
-    pub format: String,
     pub file: String,
 }
 
 impl Default for FileConfig {
     fn default() -> Self {
         return FileConfig {
-            format: "%module% %level%: %message%".to_string(),
             file: "log.log".to_string(),
         };
     }

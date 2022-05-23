@@ -2,11 +2,13 @@
   "root_loggers": [
     {
       "levels": ["DEBUG","INFO", "WARN", "ERROR"],
+      "format": "[{{module({})}}] {{level({})}}: {{message({})}}",
+      "structure_dump": true,
       "targets": [
         {
           "type": "console",
           "properties": {
-            "format": "[{{module({})}}] {{level({})}}: {{message}}"
+            "format": "[{{module({})}}] {{level({})}}: {{message({})}}"
           }
         }
       ]
@@ -15,12 +17,12 @@
   "loggers": [
     {
       "module": "logger_tests",
+      "format": "[{{module({})}}] {{level({})}}: {{message({})}}",
+      "structure_dump": true,
+
       "targets": [
         {
-          "type": "console",
-          "properties": {
-            "format": "[{{module({})}}] {{level({})}}: {{message}}"
-          }
+          "type": "console"
         }
       ]
     }

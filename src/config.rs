@@ -9,6 +9,7 @@ use serde_json::Value;
 
 use crate::loggers::LoggerTarget;
 use crate::{Logger, LoggerBuilders, LoggerTree};
+use crate::format::Format;
 
 /// Target Config
 #[derive(Serialize, Deserialize)]
@@ -17,6 +18,7 @@ pub struct TargetConfig {
     #[serde(rename = "type")]
     pub target_type: String,
     /// Properties. Refer to Target config struct for more information
+    #[serde(default)]
     pub properties: HashMap<String, Value>,
 }
 
@@ -30,21 +32,23 @@ pub struct LoggerConfig {
     pub levels: Vec<Level>,
     /// Targets
     pub targets: Vec<TargetConfig>,
+    /// Format
+    pub format: String,
+    /// Structure Dump
+    /// Dump the yaks
+    #[serde(default)]
+    pub structure_dump: bool,
     /// Do you want to always execute based on module parents
     /// If you have a module nitro::admin::system and nitro::admin
     /// if nitro::admin has this set to true
     /// And you grab the loggers for nitro::admin::system
     /// it will return true
-    #[serde(default = "always_execute_default")]
+    #[serde(default)]
     pub always_execute: bool,
 }
 
 fn default_levels() -> Vec<Level> {
     vec![Trace, Info, Debug, Warn, Error]
-}
-
-fn always_execute_default() -> bool {
-    false
 }
 
 
@@ -72,6 +76,8 @@ fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> 
             levels: logger.levels,
             targets,
             always_execute: logger.always_execute,
+            structure_dump: logger.structure_dump,
+            format: Format::new(&builders.placeholders, logger.format.as_str(), false)?,
         });
     }
     Ok(values)

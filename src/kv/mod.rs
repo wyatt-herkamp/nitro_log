@@ -1,2 +1,1 @@
-pub mod data_dump;
-pub mod dynamic_variables;
+pub mod default_structure_dump;

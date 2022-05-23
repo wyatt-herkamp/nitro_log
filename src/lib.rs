@@ -86,11 +86,7 @@ impl log::Log for NitroLogger {
         let loggers = option.unwrap();
         for logger in loggers {
             if logger.levels.contains(&record.metadata().level()) {
-                for x in &logger.targets {
-                    if let Err(error) = x.log(record) {
-                        println!("Error {}", error);
-                    }
-                }
+                logger.log(record);
             }
         }
     }

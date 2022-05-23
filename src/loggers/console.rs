@@ -5,7 +5,7 @@ use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, write_log_standard};
+use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, LoggerWriter};
 use crate::{Error, NitroLogger, PlaceHolders};
 use crate::format::{Format, FormatError, FormatSection};
 
@@ -18,7 +18,6 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
 
     fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
         let logger = ConsoleLogger {
-            format: Format::new(placeholders, &value.get("format").unwrap().to_string(), false)?,
             console: stdout(),
         };
         Ok(Box::new(logger))
@@ -26,23 +25,21 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
 }
 
 pub struct ConsoleLogger {
-    pub format: Format,
     pub console: Stdout,
 }
 
 
-
 impl LoggerTarget for ConsoleLogger {
-    fn log(
-        &self,
-        record: &Record,
-    ) -> anyhow::Result<()> {
-        let mut out = self.console.lock();
-        write_log_standard(&mut out, &self.format, record)
+    fn start_write<'a>(&'a self, record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
+        let x = Box::new(self.console.lock());
+        Ok(LoggerWriter{
+            writer: Box::new(self.console.lock()),
+            logger: Box::new(self)
+        })
     }
 
-    fn name(&self) -> String {
-        return "console".to_string();
+    fn return_write(& self, write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+        return Ok(());
     }
 }
 
