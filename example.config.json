@@ -1,7 +1,7 @@
 {
   "root_loggers": [
     {
-      "format": "[{{module({})}}] {{level({\"colored\":true})}}: {{message({})}}",
+      "format": "[{{module({})}}] {{level({'colored':true})}}: {{message({})}}",
       "structure_dump": true,
       "targets": [
         {

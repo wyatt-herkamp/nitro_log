@@ -43,7 +43,7 @@ impl Format {
                 let key = capture.name("key").ok_or_else(|| FormatError::MissingKey("Missing Key".to_string()))?;
                 let special_call = if capture.name("PlaceHolder").is_some() {
                     let settings = if let Some(settings) = capture.name("settings") {
-                        let mut values: HashMap<String, Value> = serde_json::from_str(settings.as_str()).map_err(FormatError::SettingParseError)?;
+                        let mut values: HashMap<String, Value> = serde_json::from_str(&settings.as_str().replace("'","\"")).map_err(FormatError::SettingParseError)?;
                         values.insert("path".to_string(), Value::Bool(path_safe));
                         Some(serde_json::to_value(values).map_err(FormatError::SettingParseError)?)
                     } else {
