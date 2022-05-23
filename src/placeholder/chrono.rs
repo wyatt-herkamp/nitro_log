@@ -31,7 +31,7 @@ pub struct ChronoPlaceholder {
 
 
 impl Placeholder for ChronoPlaceholder {
-    fn build_message<'a>(&self, _: &'a Record) -> Cow<'a, str> {
+    fn build_message<'a>(&'a self, _: &'a Record) -> Cow<'a, str> {
         Cow::Owned(Local::now().format(&self.config.format).to_string())
     }
 

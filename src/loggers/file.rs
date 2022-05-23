@@ -12,6 +12,7 @@ use serde_json::Value;
 use crate::error::Error;
 use crate::loggers::{LoggerTarget, LoggerWriter};
 use crate::{PlaceHolders};
+use crate::config::FormatConfig;
 use crate::format::{Format, FormatSection};
 use crate::loggers::target::LoggerTargetBuilder;
 
@@ -25,7 +26,7 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
     fn build(&self, value: Value, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
         let file_config: FileConfig = serde_json::from_value(value)?;
         let logger = FileLogger {
-            file_format: Format::new(placeholders, &file_config.file, true)?
+            file_format: Format::new(placeholders, file_config.file, true)?
         };
         Ok(Box::new(logger))
     }
@@ -53,16 +54,10 @@ impl LoggerTarget for FileLogger {
 
 #[derive(Serialize, Deserialize)]
 pub struct FileConfig {
-    pub file: String,
+    #[serde(deserialize_with="crate::config::format_config_string_or_struct")]
+    pub file: FormatConfig,
 }
 
-impl Default for FileConfig {
-    fn default() -> Self {
-        FileConfig {
-            file: "log.log".to_string(),
-        }
-    }
-}
 
 pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
     let mut path = PathBuf::new();

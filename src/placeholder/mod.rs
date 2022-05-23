@@ -8,6 +8,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use log::Record;
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use crate::Error;
 
@@ -19,7 +20,7 @@ pub fn default_placeholders() -> PlaceHolders {
     placeholders.push(Box::new(standard_placeholders::LevelPlaceHolderBuilder {}));
     placeholders.push(Box::new(standard_placeholders::ModulePlaceHolderBuilder {}));
     #[cfg(feature = "chrono")]
-    placeholders.push(Box::new(chrono::ChronoPlaceHolderBuilder{}));
+    placeholders.push(Box::new(chrono::ChronoPlaceHolderBuilder {}));
     placeholders
 }
 
@@ -31,8 +32,24 @@ pub trait PlaceholderBuilder {
 }
 
 pub trait Placeholder: Send + Sync + Debug {
-    fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str>;
+    fn build_message<'a>(&'a self, record: &'a Record) -> Cow<'a, str>;
 
     /// Returns Settings received during creation
     fn settings(&self) -> Option<Value>;
+}
+
+pub fn parse_config<D: DeserializeOwned + Default>(value: Option<Value>) -> Result<D, Error> {
+    if let Some(config) = value {
+        serde_json::from_value(config).map_err(|error| Error::ConfigError("Placeholder".to_string(), error.to_string()))
+    } else {
+        Ok(D::default())
+    }
+}
+
+pub fn parse_config_no_default<D: DeserializeOwned>(value: Option<Value>) -> Result<D, Error> {
+    if let Some(config) = value {
+        serde_json::from_value(config).map_err(|error| Error::ConfigError("Placeholder".to_string(), error.to_string()))
+    } else {
+        Err(Error::ConfigError("Placeholder".to_string(), "Missing Placeholder config".to_string()))
+    }
 }

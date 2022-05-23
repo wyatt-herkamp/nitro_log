@@ -11,7 +11,7 @@ pub struct ColorLevelPlaceholder;
 
 
 impl Placeholder for ColorLevelPlaceholder {
-    fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
+    fn build_message<'a>(&'a self, record: &'a Record) -> Cow<'a, str> {
         let string = record.metadata().level().to_string();
         let value = match record.metadata().level() {
             Level::Error => string.red().to_string(),

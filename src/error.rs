@@ -13,6 +13,8 @@ pub enum Error {
     SerdeJson(serde_json::Error),
     #[error("Failed to generate a Format: {0}")]
     FormatGeneration(FormatError),
+    #[error("Failed to load {0} config Error {0}")]
+    ConfigError(String, String),
 }
 
 impl From<SetLoggerError> for Error {

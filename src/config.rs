@@ -1,9 +1,16 @@
-
+use std::collections::HashMap;
+use std::fmt;
+use std::fmt::Write;
+use std::marker::PhantomData;
+use std::str::FromStr;
 use std::vec::IntoIter;
 
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde::__private::de;
+use serde::de::{MapAccess, Visitor};
+use serde::de::value::MapAccessDeserializer;
 
 use serde_json::Value;
 
@@ -11,6 +18,64 @@ use serde_json::Value;
 use crate::loggers::target::LoggerTarget;
 use crate::{Logger, LoggerBuilders};
 use crate::format::Format;
+
+#[derive(Serialize, Deserialize)]
+pub struct FormatConfig {
+    pub format: String,
+    pub placeholders: HashMap<String, Value>,
+}
+
+impl FromStr for FormatConfig {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(FormatConfig { format: s.to_string(), placeholders: Default::default() })
+    }
+}
+
+impl From<String> for FormatConfig {
+    fn from(format: String) -> Self {
+        FormatConfig {
+            format,
+            placeholders: Default::default(),
+        }
+    }
+}
+
+pub(crate) fn format_config_string_or_struct<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de> + FromStr<Err=()>,
+        D: Deserializer<'de>,
+{
+    struct StringOrStruct<T>(PhantomData<fn() -> T>);
+
+    impl<'de, T> Visitor<'de> for StringOrStruct<T>
+        where
+            T: Deserialize<'de> + FromStr<Err=()>,
+    {
+        type Value = T;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("string or map")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<T, E>
+            where
+                E: serde::de::Error,
+        {
+            Ok(FromStr::from_str(value).unwrap())
+        }
+
+        fn visit_map<M>(self, map: M) -> Result<T, M::Error>
+            where
+                M: MapAccess<'de>,
+        {
+            Deserialize::deserialize(MapAccessDeserializer::new(map))
+        }
+    }
+
+    deserializer.deserialize_any(StringOrStruct(PhantomData))
+}
 
 /// Target Config
 #[derive(Serialize, Deserialize)]
@@ -34,7 +99,8 @@ pub struct LoggerConfig {
     /// Targets
     pub targets: Vec<TargetConfig>,
     /// Format
-    pub format: String,
+    #[serde(deserialize_with = "format_config_string_or_struct")]
+    pub format: FormatConfig,
     /// Structure Dump
     /// Dump the yaks
     #[serde(default)]
@@ -79,7 +145,7 @@ fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> 
             targets,
             always_execute: logger.always_execute,
             structure_dump: logger.structure_dump,
-            format: Format::new(&builders.placeholders, logger.format.as_str(), false)?,
+            format: Format::new(&builders.placeholders, logger.format, false)?,
         });
     }
     Ok(values)
