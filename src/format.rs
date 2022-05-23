@@ -7,6 +7,7 @@ use serde_json::Value;
 use thiserror::Error;
 use crate::{Placeholder};
 use crate::config::FormatConfig;
+use crate::format::FormatError::MissingKey;
 use crate::placeholder::PlaceholderBuilder;
 
 #[derive(Debug, Error)]
@@ -56,11 +57,8 @@ impl Format {
                     } else {
                         None
                     };
-                    if let Some(placeholder) = placeholders.iter().find(|pb| pb.name().eq(key.as_str())) {
-                        FormatSection::Placeholder(placeholder.build(settings).unwrap())
-                    } else {
-                        continue;
-                    }
+                    let result = placeholders.iter().find(|pb| pb.name().eq(key.as_str())).ok_or_else(|| MissingKey(format!("Missing Placeholder {}", key.as_str())))?;
+                    FormatSection::Placeholder(result.build(settings).unwrap())
                 } else {
                     FormatSection::Variable(key.as_str().trim().to_string())
                 };
