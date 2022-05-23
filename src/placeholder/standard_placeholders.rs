@@ -43,7 +43,7 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
 
 
     fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
-        let _config: LevelPlaceholderSettings = if let Some(config) = value {
+        let config: LevelPlaceholderSettings = if let Some(config) = value {
             serde_json::from_value(config)?
         } else {
             LevelPlaceholderSettings::default()
