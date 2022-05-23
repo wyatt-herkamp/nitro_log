@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 use log::Record;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use crate::{Error, Placeholder};
 use crate::placeholder::PlaceholderBuilder;
@@ -25,8 +26,7 @@ pub struct MessagePlaceholder;
 
 impl Placeholder for MessagePlaceholder {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
-        Cow::Borrowed( record.args().as_str().unwrap())
-
+        Cow::Borrowed(record.args().as_str().unwrap())
     }
 
     fn settings(&self) -> Option<Value> {
@@ -42,10 +42,28 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
     }
 
 
-    fn build(&self, _value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
+    fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
+        let config: LevelPlaceholderSettings = if let Some(config) = value {
+            serde_json::from_value(config)?
+        } else {
+            LevelPlaceholderSettings::default()
+        };
+        #[cfg(feature = "colored")]
+        {
+            if config.colored {
+                return Ok(Box::new(super::colored::ColorLevelPlaceholder{}));
+            }
+        }
         Ok(Box::new(LevelPlaceHolder))
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Default)]
+pub struct LevelPlaceholderSettings {
+    #[cfg(feature = "colored")]
+    pub colored: bool,
+}
+
 
 #[derive(Debug)]
 pub struct LevelPlaceHolder;

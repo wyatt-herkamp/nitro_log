@@ -9,7 +9,7 @@ use crate::placeholder::PlaceholderBuilder;
 
 pub struct ChronoPlaceHolderBuilder;
 
-impl PlaceholderBuilder for ChronoPlaceholder {
+impl PlaceholderBuilder for ChronoPlaceHolderBuilder {
     fn name<'a>(&self) -> &'a str {
         "chrono"
     }
@@ -20,6 +20,7 @@ impl PlaceholderBuilder for ChronoPlaceholder {
         } else {
             ChronoConfig::default()
         };
+        Ok(Box::new(ChronoPlaceholder{config}))
     }
 }
 

@@ -61,7 +61,6 @@ impl Format {
                 variables.push(special_call);
             }
         }
-
         Ok(Format {
             format: variables
         })

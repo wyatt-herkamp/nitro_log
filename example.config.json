@@ -1,13 +1,11 @@
 {
   "root_loggers": [
-    {"format": "[{{module({})}}] {{level({})}}: {{message({})}}",
+    {
+      "format": "[{{module({})}}] {{level({\"colored\":true})}}: {{message({})}}",
       "structure_dump": true,
       "targets": [
         {
-          "type": "console",
-          "properties": {
-            "format": "[{{module({})}}] {{level({})}}: {{message({})}}"
-          }
+          "type": "console"
         }
       ]
     }
