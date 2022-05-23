@@ -1,16 +1,16 @@
-use std::borrow::Cow;
-use std::fmt::{Debug, Formatter};
+use crate::placeholder::PlaceholderBuilder;
+use crate::{Error, Placeholder};
 use chrono::Local;
 use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::{Error, Placeholder};
-use crate::placeholder::PlaceholderBuilder;
+use std::borrow::Cow;
+use std::fmt::{Debug, Formatter};
 
 pub struct ChronoPlaceHolderBuilder;
 
 impl PlaceholderBuilder for ChronoPlaceHolderBuilder {
-    fn name<'a>(&self) -> &'a str {
+    fn name<'message>(&self) -> &'message str {
         "chrono"
     }
 
@@ -20,7 +20,7 @@ impl PlaceholderBuilder for ChronoPlaceHolderBuilder {
         } else {
             ChronoConfig::default()
         };
-        Ok(Box::new(ChronoPlaceholder{config}))
+        Ok(Box::new(ChronoPlaceholder { config }))
     }
 }
 
@@ -29,9 +29,8 @@ pub struct ChronoPlaceholder {
     pub config: ChronoConfig,
 }
 
-
 impl Placeholder for ChronoPlaceholder {
-    fn build_message<'a>(&'a self, _: &'a Record) -> Cow<'a, str> {
+    fn build_message<'message>(&'message self, _: &'message Record) -> Cow<'message, str> {
         Cow::Owned(Local::now().format(&self.config.format).to_string())
     }
 
@@ -39,7 +38,6 @@ impl Placeholder for ChronoPlaceholder {
         serde_json::to_value(self.config.clone()).ok()
     }
 }
-
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ChronoConfig {
@@ -49,7 +47,7 @@ pub struct ChronoConfig {
 impl Default for ChronoConfig {
     fn default() -> Self {
         ChronoConfig {
-            format: "%Y-%m-%d %H:%M:%S".to_string()
+            format: "%Y-%m-%d %H:%M:%S".to_string(),
         }
     }
 }

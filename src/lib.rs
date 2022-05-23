@@ -1,19 +1,17 @@
 use log::{LevelFilter, Metadata, Record};
 
-
 use crate::config::Config;
 use crate::error::Error;
-use crate::loggers::tree::LoggerTree;
-use crate::loggers::{Logger};
 use crate::loggers::target::{default_logger_targets, LoggerTargetBuilders};
+use crate::loggers::tree::LoggerTree;
+use crate::loggers::Logger;
 
-use crate::placeholder::{default_placeholders, Placeholder, PlaceHolders};
-
+use crate::placeholder::{default_placeholders, PlaceHolders, Placeholder};
 
 pub mod config;
 pub mod error;
-pub mod kv;
 pub mod format;
+pub mod kv;
 pub mod loggers;
 pub mod placeholder;
 
@@ -22,7 +20,7 @@ pub type ErrorHandler = Box<dyn Send + Sync + Fn(&anyhow::Error)>;
 fn default_error_handler(error: &anyhow::Error) {
     eprintln!("Nitro Logger: {}", error);
 }
-
+#[non_exhaustive]
 pub struct LoggerBuilders {
     pub placeholders: PlaceHolders,
     pub targets: LoggerTargetBuilders,
@@ -39,20 +37,26 @@ impl Default for LoggerBuilders {
 
 pub struct NitroLogger {
     loggers: LoggerTree,
-   pub(crate) error_handler: Box<dyn Send + Sync + Fn(&anyhow::Error)>,
-
+    pub(crate) error_handler: Box<dyn Send + Sync + Fn(&anyhow::Error)>,
 }
 
 impl NitroLogger {
     /// Load the Config via the Config the object
     pub fn load(config: Config, builders: LoggerBuilders) -> Result<(), Error> {
         let (root, loggers) = config::create_loggers(config, builders)?;
-        let result = Self::new(LoggerTree::new(root, loggers), Box::new(default_error_handler));
+        let result = Self::new(
+            LoggerTree::new(root, loggers),
+            Box::new(default_error_handler),
+        );
         log::set_boxed_logger(Box::new(result))?;
         log::set_max_level(LevelFilter::Trace);
         Ok(())
     }
-    pub fn load_with_error_handler(config: Config, builders: LoggerBuilders, error_handler: ErrorHandler) -> Result<(), Error> {
+    pub fn load_with_error_handler(
+        config: Config,
+        builders: LoggerBuilders,
+        error_handler: ErrorHandler,
+    ) -> Result<(), Error> {
         let (root, loggers) = config::create_loggers(config, builders)?;
         let result = Self::new(LoggerTree::new(root, loggers), error_handler);
         log::set_boxed_logger(Box::new(result))?;
@@ -60,15 +64,13 @@ impl NitroLogger {
         Ok(())
     }
     /// Create a new Nitro Logger with the already setup LoggerTree
-    pub fn new(
-        loggers: LoggerTree, error_handler: ErrorHandler) -> NitroLogger {
+    pub fn new(loggers: LoggerTree, error_handler: ErrorHandler) -> NitroLogger {
         NitroLogger {
             loggers,
             error_handler,
         }
     }
 }
-
 
 impl log::Log for NitroLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
@@ -94,11 +96,10 @@ impl log::Log for NitroLogger {
         let loggers = option.unwrap();
         for logger in loggers {
             if logger.levels.contains(&record.metadata().level()) {
-                logger.log(record,self);
+                logger.log(record, self);
             }
         }
     }
 
     fn flush(&self) {}
 }
-

@@ -18,7 +18,11 @@ impl LoggerTree {
             children: vec![],
         };
         for log in loggers {
-            let string = log.module.as_ref().expect("All Loggers Must have a module. Unless a root logger").clone();
+            let string = log
+                .module
+                .as_ref()
+                .expect("All Loggers Must have a module. Unless a root logger")
+                .clone();
             logger_tree.add_node_lookup(log, string);
         }
         logger_tree
@@ -130,4 +134,3 @@ impl TreeNode {
         self.children.push(node);
     }
 }
-

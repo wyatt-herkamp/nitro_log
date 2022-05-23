@@ -8,15 +8,14 @@ use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Deserializer, Serialize};
 
-use serde::de::{MapAccess, Visitor};
 use serde::de::value::MapAccessDeserializer;
+use serde::de::{MapAccess, Visitor};
 
 use serde_json::Value;
 
-
+use crate::format::Format;
 use crate::loggers::target::LoggerTarget;
 use crate::{Logger, LoggerBuilders};
-use crate::format::Format;
 
 #[derive(Serialize, Deserialize)]
 pub struct FormatConfig {
@@ -28,7 +27,10 @@ impl FromStr for FormatConfig {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(FormatConfig { format: s.to_string(), placeholders: Default::default() })
+        Ok(FormatConfig {
+            format: s.to_string(),
+            placeholders: Default::default(),
+        })
     }
 }
 
@@ -42,15 +44,15 @@ impl From<String> for FormatConfig {
 }
 
 pub(crate) fn format_config_string_or_struct<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where
-        T: Deserialize<'de> + FromStr<Err=()>,
-        D: Deserializer<'de>,
+where
+    T: Deserialize<'de> + FromStr<Err = ()>,
+    D: Deserializer<'de>,
 {
     struct StringOrStruct<T>(PhantomData<fn() -> T>);
 
     impl<'de, T> Visitor<'de> for StringOrStruct<T>
-        where
-            T: Deserialize<'de> + FromStr<Err=()>,
+    where
+        T: Deserialize<'de> + FromStr<Err = ()>,
     {
         type Value = T;
 
@@ -59,15 +61,15 @@ pub(crate) fn format_config_string_or_struct<'de, T, D>(deserializer: D) -> Resu
         }
 
         fn visit_str<E>(self, value: &str) -> Result<T, E>
-            where
-                E: serde::de::Error,
+        where
+            E: serde::de::Error,
         {
             Ok(FromStr::from_str(value).unwrap())
         }
 
         fn visit_map<M>(self, map: M) -> Result<T, M::Error>
-            where
-                M: MapAccess<'de>,
+        where
+            M: MapAccess<'de>,
         {
             Deserialize::deserialize(MapAccessDeserializer::new(map))
         }
@@ -86,7 +88,6 @@ pub struct TargetConfig {
     #[serde(default)]
     pub properties: Value,
 }
-
 
 /// For Loggers with modules
 #[derive(Serialize, Deserialize)]
@@ -117,7 +118,6 @@ fn default_levels() -> Vec<Level> {
     vec![Trace, Info, Debug, Warn, Error]
 }
 
-
 #[derive(Serialize, Deserialize)]
 pub struct Config {
     /// All the logger
@@ -127,11 +127,20 @@ pub struct Config {
     pub root_loggers: Vec<LoggerConfig>,
 }
 
-pub fn create_loggers(config: Config, builders: LoggerBuilders) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
-    Ok((create_logger(config.root_loggers.into_iter(), &builders)?, create_logger(config.loggers.into_iter(), &builders)?))
+pub fn create_loggers(
+    config: Config,
+    builders: LoggerBuilders,
+) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
+    Ok((
+        create_logger(config.root_loggers.into_iter(), &builders)?,
+        create_logger(config.loggers.into_iter(), &builders)?,
+    ))
 }
 
-fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> Result<Vec<Logger>, crate::Error> {
+fn create_logger(
+    loggers: IntoIter<LoggerConfig>,
+    builders: &LoggerBuilders,
+) -> Result<Vec<Logger>, crate::Error> {
     let mut values = Vec::new();
     for logger in loggers {
         let mut targets = Vec::new();
@@ -150,15 +159,18 @@ fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> 
     Ok(values)
 }
 
-fn create_target(target: TargetConfig, builders: &LoggerBuilders) -> Result<Box<dyn LoggerTarget>, crate::Error> {
-    if let Some(target_builder) = builders.targets.iter().find(|target_builder| target_builder.name().eq(&target.target_type)) {
+fn create_target(
+    target: TargetConfig,
+    builders: &LoggerBuilders,
+) -> Result<Box<dyn LoggerTarget>, crate::Error> {
+    if let Some(target_builder) = builders
+        .targets
+        .iter()
+        .find(|target_builder| target_builder.name().eq(&target.target_type))
+    {
         match target_builder.build(target.properties, &builders.placeholders) {
-            Ok(value) => {
-                Ok(value)
-            }
-            Err(error) => {
-                Err(error)
-            }
+            Ok(value) => Ok(value),
+            Err(error) => Err(error),
         }
     } else {
         todo!("Implement Error Handler here")

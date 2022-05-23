@@ -1,17 +1,13 @@
+use log::{error, info, warn, Record};
 use std::borrow::Cow;
-use std::fmt::{Debug};
-use log::{error, info, Record, warn};
+use std::fmt::Debug;
 
 use nitro_log::{LoggerBuilders, NitroLogger};
 
 use std::path::PathBuf;
 
-
-
-
-use serde_json::Value;
 use nitro_log::error::Error;
-
+use serde_json::Value;
 
 use nitro_log::placeholder::{Placeholder, PlaceholderBuilder};
 
@@ -31,10 +27,14 @@ impl PlaceholderBuilder for MyPlaceHolderBuilder {
 #[derive(Debug)]
 pub struct MyPlaceHolderTest;
 
-
 impl Placeholder for MyPlaceHolderTest {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
-        Cow::Owned(record.line().map(|l| l.to_string()).unwrap_or_else(|| "NOT_FOUND".to_string()))
+        Cow::Owned(
+            record
+                .line()
+                .map(|l| l.to_string())
+                .unwrap_or_else(|| "NOT_FOUND".to_string()),
+        )
     }
 
     /// Return the settings. Currently the backend usage of this is not added
@@ -45,9 +45,11 @@ impl Placeholder for MyPlaceHolderTest {
 
 #[test]
 fn test() {
-// By using the LoggerBuilders::default you get all the default Placeholders and Targets
+    // By using the LoggerBuilders::default you get all the default Placeholders and Targets
     let mut builders = LoggerBuilders::default();
-    builders.placeholders.push(Box::new(MyPlaceHolderBuilder {}));
+    builders
+        .placeholders
+        .push(Box::new(MyPlaceHolderBuilder {}));
     NitroLogger::load_file(PathBuf::from("tests/custom_placeholder.json"), builders).unwrap();
     info!("INFO HEY");
     warn!("Warn HEY");

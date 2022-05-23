@@ -1,17 +1,16 @@
-use std::borrow::Cow;
-use log::Record;
-use serde_json::Value;
 use crate::Placeholder;
 use colored::Colorize;
 use log::Level;
+use log::Record;
+use serde_json::Value;
+use std::borrow::Cow;
 use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct ColorLevelPlaceholder;
 
-
 impl Placeholder for ColorLevelPlaceholder {
-    fn build_message<'a>(&'a self, record: &'a Record) -> Cow<'a, str> {
+    fn build_message<'message>(&'message self, record: &'message Record) -> Cow<'message, str> {
         let string = record.metadata().level().to_string();
         let value = match record.metadata().level() {
             Level::Error => string.red().to_string(),

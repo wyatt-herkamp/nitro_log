@@ -1,12 +1,12 @@
 use log::{as_error, as_serde, error, info, log_enabled, trace, warn};
 use nitro_log::{LoggerBuilders, NitroLogger};
 
+use colored::Colorize;
+use log::Level::Trace;
+use serde::Serialize;
 use std::path::PathBuf;
 use std::thread::sleep;
 use std::time::Duration;
-use colored::Colorize;
-use log::Level::{Trace};
-use serde::{Serialize};
 
 use nitro_log::format::FormatError;
 
@@ -15,10 +15,13 @@ pub struct KvTest {
     pub hi: String,
 }
 
-
 #[test]
 fn test() {
-    NitroLogger::load_file(PathBuf::new().join("example.config.json"), LoggerBuilders::default()).unwrap();
+    NitroLogger::load_file(
+        PathBuf::new().join("example.config.json"),
+        LoggerBuilders::default(),
+    )
+    .unwrap();
     let test = KvTest {
         hi: "My Value".red().to_string(),
     };

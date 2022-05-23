@@ -1,9 +1,7 @@
 use std::io::Write;
 
-
+use log::kv::ToKey;
 use log::{Level, Record};
-use log::kv::{ToKey};
-
 
 use crate::format::{Format, FormatSection};
 use crate::kv::default_structure_dump::DefaultStructureDump;
@@ -12,13 +10,11 @@ use crate::loggers::target::LoggerTarget;
 use crate::loggers::writer::LoggerWriter;
 use crate::NitroLogger;
 
-
-pub mod tree;
 pub mod console;
 pub mod file;
-pub mod writer;
 pub mod target;
-
+pub mod tree;
+pub mod writer;
 
 pub struct Logger {
     pub module: Option<String>,
@@ -28,7 +24,6 @@ pub struct Logger {
     pub structure_dump: bool,
     pub format: Format,
 }
-
 
 impl Logger {
     pub fn module_matches(&self, module: &str) -> bool {
@@ -60,14 +55,16 @@ impl Logger {
                     }
                 }
                 FormatSection::Placeholder(placeholder) => {
-                    self.write(&mut writers, placeholder.build_message(record).as_bytes(), logger);
+                    self.write(
+                        &mut writers,
+                        placeholder.build_message(record).as_bytes(),
+                        logger,
+                    );
                 }
             }
         }
         let mut writers = if self.structure_dump {
-            let mut dump = DefaultStructureDump {
-                write: writers
-            };
+            let mut dump = DefaultStructureDump { write: writers };
             record.key_values().visit(&mut dump).unwrap();
             dump.write
         } else {
