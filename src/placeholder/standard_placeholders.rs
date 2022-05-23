@@ -1,6 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::{Debug, Formatter};
-use log::kv::Source;
+use std::fmt::{Debug};
 use log::Record;
 use serde_json::Value;
 use crate::{Error, PlaceHolder};
@@ -13,7 +12,7 @@ impl PlaceHolderBuilder for MessagePlaceholderBuilder {
         "message".to_string()
     }
 
-    fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, _value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
         Ok(Box::new(MessagePlaceholder {}))
     }
 }
@@ -35,7 +34,7 @@ impl PlaceHolderBuilder for LevelPlaceHolderBuilder {
         "level".to_string()
     }
 
-    fn build(&self, value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, _value: Option<HashMap<String, Value>>) -> Result<Box<dyn PlaceHolder>, Error> {
         Ok(Box::new(LevelPlaceHolder))
     }
 }

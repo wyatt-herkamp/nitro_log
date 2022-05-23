@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-use std::fmt::write;
-use std::fs::{create_dir_all, File, OpenOptions};
+
+
+use std::fs::{create_dir_all, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
-use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, LoggerWriter};
-use crate::{NitroLogger, PlaceHolders};
+use crate::loggers::{LoggerTarget, LoggerTargetBuilder, LoggerWriter};
+use crate::{PlaceHolders};
 use crate::format::{Format, FormatSection};
 
 pub struct FileLoggerBuilder;
@@ -37,14 +37,14 @@ pub struct FileLogger {
 
 impl LoggerTarget for FileLogger {
     fn start_write<'a>(&'a self, record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
-        let mut file = OpenOptions::new().create(true).append(true).open(generate_path(&self.file_format, record)?)?;
+        let file = OpenOptions::new().create(true).append(true).open(generate_path(&self.file_format, record)?)?;
         Ok(LoggerWriter{
             writer: Box::new(file),
             logger: Box::new(self)
         })
     }
 
-    fn return_write(& self, write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+    fn return_write(& self, _write: &mut Box<dyn Write>) -> anyhow::Result<()> {
         Ok(())
     }
 }
@@ -56,9 +56,9 @@ pub struct FileConfig {
 
 impl Default for FileConfig {
     fn default() -> Self {
-        return FileConfig {
+        FileConfig {
             file: "log.log".to_string(),
-        };
+        }
     }
 }
 
@@ -69,11 +69,11 @@ pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf
             FormatSection::Text(value) => {
                 path = path.join(&value);
             }
-            FormatSection::Variable(variable) => {
+            FormatSection::Variable(_variable) => {
                 todo!("Variable Pathing is not available yet")
             }
             FormatSection::Placeholder(placeholder) => {
-                path = path.join(placeholder.build_message(&record));
+                path = path.join(placeholder.build_message(record));
             }
         }
     }

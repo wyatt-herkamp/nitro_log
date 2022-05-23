@@ -1,15 +1,15 @@
-use std::collections::HashMap;
+
 use std::vec::IntoIter;
 
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Serialize};
-use serde_json::map::Values;
+
 use serde_json::Value;
 
 
 use crate::loggers::LoggerTarget;
-use crate::{Logger, LoggerBuilders, LoggerTree};
+use crate::{Logger, LoggerBuilders};
 use crate::format::Format;
 
 /// Target Config
@@ -62,7 +62,7 @@ pub struct Config {
 }
 
 pub fn create_loggers(config: Config, builders: LoggerBuilders) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
-    return Ok((create_logger(config.root_loggers.into_iter(), &builders)?, create_logger(config.loggers.into_iter(), &builders)?));
+    Ok((create_logger(config.root_loggers.into_iter(), &builders)?, create_logger(config.loggers.into_iter(), &builders)?))
 }
 
 fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> Result<Vec<Logger>, crate::Error> {
@@ -70,7 +70,7 @@ fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> 
     for logger in loggers {
         let mut targets = Vec::new();
         for target in logger.targets {
-            targets.push(create_target(target, &builders)?);
+            targets.push(create_target(target, builders)?);
         }
         values.push(Logger {
             module: logger.module,

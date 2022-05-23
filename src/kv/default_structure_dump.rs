@@ -1,9 +1,9 @@
-use std::any::Any;
+
 use std::io::Write;
-use std::process::Output;
-use log::kv::{Error, Key, ToValue, Value, Visitor};
-use log::kv::value::Visit;
-use serde::Serialize;
+
+use log::kv::{Error, Key, Value, Visitor};
+
+
 use crate::loggers::LoggerWriter;
 
 pub struct DefaultStructureDump<'a> {
@@ -16,6 +16,6 @@ impl<'kvs, 'a> Visitor<'kvs> for DefaultStructureDump<'a> {
             writer.writer.write_all("\n".as_bytes())?;
             writer.writer.write_all(format!("{key}: {value}").as_bytes())?;
         }
-        return Ok(());
+        Ok(())
     }
 }

@@ -1,12 +1,12 @@
-use std::collections::HashMap;
-use std::fs::create_dir_all;
+
+
 use std::io::Write;
-use std::path::PathBuf;
-use std::ptr::write;
+
+
 use log::{Level, Record};
-use log::kv::{Key, Source, ToKey};
+use log::kv::{ToKey};
 use serde_json::Value;
-use crate::config::LoggerConfig;
+
 
 use crate::error::Error;
 use crate::format::{Format, FormatSection};
@@ -25,7 +25,7 @@ pub struct LoggerWriter<'a> {
 
 impl<'a> Drop for LoggerWriter<'a> {
     fn drop(&mut self) {
-        self.logger.return_write(&mut self.writer);
+        self.logger.return_write(&mut self.writer).unwrap();
     }
 }
 
@@ -47,7 +47,7 @@ impl Logger {
             }
         }
 
-        return false;
+        false
     }
     pub fn log(&self, record: &Record) {
         let mut writers = Vec::new();
@@ -68,7 +68,7 @@ impl Logger {
                     }
                 }
                 FormatSection::Placeholder(placeholder) => {
-                    self.write(&mut writers, placeholder.build_message(&record).as_bytes());
+                    self.write(&mut writers, placeholder.build_message(record).as_bytes());
                 }
             }
         }
@@ -85,12 +85,14 @@ impl Logger {
         self.write(&mut writers, "\n".as_bytes());
 
         for mut writer in writers.into_iter() {
-            writer.writer.flush();
+            if let Err(_error) =  writer.writer.flush() {
+                todo!("Errors not handled at flush")
+            }
         }
     }
     fn write(&self, writers: &mut Vec<LoggerWriter>, content: &[u8]) {
         for writer in writers.iter_mut() {
-            if let Err(error) = writer.writer.write_all(content) {
+            if let Err(_error) = writer.writer.write_all(content) {
                 todo!("Errors not handled at writing")
             }
         }
@@ -104,7 +106,7 @@ pub fn default_logger_targets() -> LoggerTargetBuilders {
     logger_targets.push(Box::new(ConsoleLoggerBuilder {}));
     logger_targets.push(Box::new(file::FileLoggerBuilder {}));
 
-    return logger_targets;
+    logger_targets
 }
 
 pub trait LoggerTargetBuilder {

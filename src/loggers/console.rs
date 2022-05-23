@@ -1,13 +1,13 @@
-use std::collections::HashMap;
-use std::env::var;
+
+
 use std::io::{stdout, Stdout, Write};
 use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::loggers::{Logger, LoggerTarget, LoggerTargetBuilder, LoggerWriter};
-use crate::{Error, NitroLogger, PlaceHolders};
-use crate::format::{Format, FormatError, FormatSection};
+use crate::loggers::{LoggerTarget, LoggerTargetBuilder, LoggerWriter};
+use crate::{Error, PlaceHolders};
+
 
 pub struct ConsoleLoggerBuilder;
 
@@ -16,7 +16,7 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
         "console".to_string()
     }
 
-    fn build(&self, value: Value, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
+    fn build(&self, _value: Value, _placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
         let logger = ConsoleLogger {
             console: stdout(),
         };
@@ -30,16 +30,16 @@ pub struct ConsoleLogger {
 
 
 impl LoggerTarget for ConsoleLogger {
-    fn start_write<'a>(&'a self, record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
-        let x = Box::new(self.console.lock());
+    fn start_write<'a>(&'a self, _record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
+        let _x = Box::new(self.console.lock());
         Ok(LoggerWriter{
             writer: Box::new(self.console.lock()),
             logger: Box::new(self)
         })
     }
 
-    fn return_write(& self, write: &mut Box<dyn Write>) -> anyhow::Result<()> {
-        return Ok(());
+    fn return_write(& self, _write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+        Ok(())
     }
 }
 
@@ -50,8 +50,8 @@ pub struct ConsoleConfig {
 
 impl Default for ConsoleConfig {
     fn default() -> Self {
-        return ConsoleConfig {
+        ConsoleConfig {
             format: "{{module()}} {{level()}}: {{message()}}".to_string(),
-        };
+        }
     }
 }

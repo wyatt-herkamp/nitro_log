@@ -3,9 +3,9 @@ use log::{as_error, as_serde, error, info, log_enabled, trace, warn};
 use nitro_log::{LoggerBuilders, NitroLogger};
 
 use std::path::PathBuf;
-use log::Level::{Info, Trace};
-use serde::{Deserialize, Serialize};
-use nitro_log::error::Error;
+use log::Level::{Trace};
+use serde::{Serialize};
+
 use nitro_log::format::FormatError;
 
 #[derive(Serialize)]
