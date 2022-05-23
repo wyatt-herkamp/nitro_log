@@ -5,7 +5,7 @@
         "format": "[{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
         "placeholders": {
           "LEVEL_SETTINGS": {
-            "colored": true
+            "colored": false
           }
         }
       },
@@ -13,6 +13,12 @@
       "targets": [
         {
           "type": "console"
+        },
+        {
+          "type": "file_logger",
+          "properties": {
+            "file": "{{module({})}}.log"
+          }
         }
       ]
     }

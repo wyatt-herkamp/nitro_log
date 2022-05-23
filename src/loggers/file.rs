@@ -1,5 +1,3 @@
-
-
 use std::fs::{create_dir_all, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
@@ -38,42 +36,44 @@ pub struct FileLogger {
 
 
 impl LoggerTarget for FileLogger {
-    fn start_write<'a>(&'a  self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
+    fn start_write<'a>(&'a self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
         let file = OpenOptions::new().create(true).append(true).open(generate_path(&self.file_format, record)?)?;
-        Ok(LoggerWriter{
+        Ok(LoggerWriter {
             internal: Box::new(file),
             logger: Box::new(self),
-            record
+            record,
         })
     }
 
-    fn return_write(& self, _: LoggerWriter) -> anyhow::Result<()> {
+    fn return_write(&self, _: LoggerWriter) -> anyhow::Result<()> {
         Ok(())
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct FileConfig {
-    #[serde(deserialize_with="crate::config::format_config_string_or_struct")]
+    #[serde(deserialize_with = "crate::config::format_config_string_or_struct")]
     pub file: FormatConfig,
 }
 
 
 pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
-    let mut path = PathBuf::new();
-    for values in &format.format {
+    let mut path = String::new();
+    for values in format.format.iter() {
         match values {
             FormatSection::Text(value) => {
-                path = path.join(&value);
+                path.push_str(&value);
             }
             FormatSection::Variable(_variable) => {
                 todo!("Variable Pathing is not available yet")
             }
             FormatSection::Placeholder(placeholder) => {
-                path = path.join(placeholder.build_message(record).as_ref());
+                path.push_str(placeholder.build_message(record).as_ref());
             }
         }
     }
+
+    let path = PathBuf::from(path);
     if let Some(parent) = path.parent() {
         create_dir_all(parent)?;
     }
