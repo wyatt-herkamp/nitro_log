@@ -1,4 +1,3 @@
-
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -12,7 +11,7 @@ use crate::loggers::{Logger};
 use crate::loggers::target::{default_logger_targets, LoggerTargetBuilders};
 
 
-use crate::placeholder::{default_placeholders, PlaceHolder, PlaceHolders};
+use crate::placeholder::{default_placeholders, Placeholder, PlaceHolders};
 
 
 pub mod config;
@@ -41,15 +40,17 @@ pub struct NitroLogger {
 }
 
 impl NitroLogger {
+    /// Load a Config Via a file
     pub fn load_file(config: PathBuf, builders: LoggerBuilders) -> Result<(), Error> {
         let config: Config = serde_json::from_reader(File::open(config)?)?;
         NitroLogger::load(config, builders)
     }
-    pub fn load(config: Config,builders: LoggerBuilders) -> Result<(), Error> {
+    /// Load the Config via the Config the object
+    pub fn load(config: Config, builders: LoggerBuilders) -> Result<(), Error> {
         let (root, loggers) = config::create_loggers(config, builders)?;
         Self::new(LoggerTree::new(root, loggers))
-
     }
+    /// Create a new Nitro Logger with the already setup LoggerTree
     pub fn new(
         loggers: LoggerTree) -> Result<(), Error> {
         log::set_boxed_logger(Box::new(NitroLogger {

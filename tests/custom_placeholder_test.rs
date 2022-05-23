@@ -13,17 +13,17 @@ use serde_json::Value;
 use nitro_log::error::Error;
 
 use nitro_log::format::FormatError;
-use nitro_log::placeholder::{PlaceHolder, PlaceHolderBuilder};
+use nitro_log::placeholder::{Placeholder, PlaceholderBuilder};
 
 pub struct MyPlaceHolderBuilder;
 
-impl PlaceHolderBuilder for MyPlaceHolderBuilder {
+impl PlaceholderBuilder for MyPlaceHolderBuilder {
     /// Give it a name
     fn name<'a>(&self) -> &'a str {
         "myPlaceHolder"
     }
 
-    fn build(&self, value: Option<Value>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
         Ok(Box::new(MyPlaceHolderTest {}))
     }
 }
@@ -32,7 +32,7 @@ impl PlaceHolderBuilder for MyPlaceHolderBuilder {
 pub struct MyPlaceHolderTest;
 
 
-impl PlaceHolder for MyPlaceHolderTest {
+impl Placeholder for MyPlaceHolderTest {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
         Cow::Owned(record.line().and_then(|l| Some(l.to_string())).unwrap_or_else(|| "NOT_FOUND".to_string()))
     }

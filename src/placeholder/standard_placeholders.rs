@@ -4,17 +4,17 @@ use std::fmt::{Debug, Display, Formatter};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 use log::Record;
 use serde_json::Value;
-use crate::{Error, PlaceHolder};
-use crate::placeholder::PlaceHolderBuilder;
+use crate::{Error, Placeholder};
+use crate::placeholder::PlaceholderBuilder;
 
 pub struct MessagePlaceholderBuilder;
 
-impl PlaceHolderBuilder for MessagePlaceholderBuilder {
+impl PlaceholderBuilder for MessagePlaceholderBuilder {
     fn name<'a>(&self) -> &'a str {
         "message"
     }
 
-    fn build(&self, _value: Option<Value>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, _value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
         Ok(Box::new(MessagePlaceholder {}))
     }
 }
@@ -23,7 +23,7 @@ impl PlaceHolderBuilder for MessagePlaceholderBuilder {
 pub struct MessagePlaceholder;
 
 
-impl PlaceHolder for MessagePlaceholder {
+impl Placeholder for MessagePlaceholder {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
         Cow::Borrowed( record.args().as_str().unwrap())
 
@@ -36,13 +36,13 @@ impl PlaceHolder for MessagePlaceholder {
 
 pub struct LevelPlaceHolderBuilder;
 
-impl PlaceHolderBuilder for LevelPlaceHolderBuilder {
+impl PlaceholderBuilder for LevelPlaceHolderBuilder {
     fn name<'a>(&self) -> &'a str {
         "level"
     }
 
 
-    fn build(&self, _value: Option<Value>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, _value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
         Ok(Box::new(LevelPlaceHolder))
     }
 }
@@ -51,7 +51,7 @@ impl PlaceHolderBuilder for LevelPlaceHolderBuilder {
 pub struct LevelPlaceHolder;
 
 
-impl PlaceHolder for LevelPlaceHolder {
+impl Placeholder for LevelPlaceHolder {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
         Cow::Borrowed(record.level().as_str())
     }
@@ -62,15 +62,15 @@ impl PlaceHolder for LevelPlaceHolder {
 
 pub struct ModulePlaceHolderBuilder;
 
-impl PlaceHolderBuilder for ModulePlaceHolderBuilder {
+impl PlaceholderBuilder for ModulePlaceHolderBuilder {
     fn name<'a>(&self) -> &'a str {
         "module"
     }
 
 
-    fn build(&self, value: Option<Value>) -> Result<Box<dyn PlaceHolder>, Error> {
+    fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
         if let Some(value) = value {
-            if value.get("path-safe").and_then(|value| value.as_bool()).unwrap_or(false) {
+            if value.get("path").and_then(|value| value.as_bool()).unwrap_or(false) {
                 return Ok(Box::new(PathModulePlaceHolder {}));
             }
         }
@@ -82,7 +82,7 @@ impl PlaceHolderBuilder for ModulePlaceHolderBuilder {
 pub struct ModulePlaceHolder;
 
 
-impl PlaceHolder for ModulePlaceHolder {
+impl Placeholder for ModulePlaceHolder {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
         Cow::Borrowed(record.module_path().unwrap_or(""))
     }
@@ -95,7 +95,7 @@ impl PlaceHolder for ModulePlaceHolder {
 pub struct PathModulePlaceHolder;
 
 
-impl PlaceHolder for PathModulePlaceHolder {
+impl Placeholder for PathModulePlaceHolder {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str> {
         Cow::Owned(record.module_path().unwrap_or("").replace("::", &MAIN_SEPARATOR.to_string()))
     }

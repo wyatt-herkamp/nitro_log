@@ -1,4 +1,6 @@
 pub mod standard_placeholders;
+#[cfg(feature = "chrono")]
+pub mod chrono;
 
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -7,7 +9,7 @@ use log::Record;
 use serde_json::Value;
 use crate::Error;
 
-pub type PlaceHolders = Vec<Box<dyn PlaceHolderBuilder>>;
+pub type PlaceHolders = Vec<Box<dyn PlaceholderBuilder>>;
 
 pub fn default_placeholders() -> PlaceHolders {
     let mut placeholders: PlaceHolders = Vec::new();
@@ -18,12 +20,12 @@ pub fn default_placeholders() -> PlaceHolders {
     placeholders
 }
 
-pub trait PlaceHolderBuilder {
+pub trait PlaceholderBuilder {
     fn name<'a>(&self) -> &'a str;
-    fn build(&self, value: Option<Value>) -> Result<Box<dyn PlaceHolder>, Error>;
+    fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error>;
 }
 
-pub trait PlaceHolder: Send + Sync + Debug {
+pub trait Placeholder: Send + Sync + Debug {
     fn build_message<'a>(&self, record: &'a Record) -> Cow<'a, str>;
 
     /// Returns Settings received during creation

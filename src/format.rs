@@ -5,8 +5,8 @@ use std::fmt::{Display, Formatter};
 use regex::Regex;
 use serde_json::Value;
 use thiserror::Error;
-use crate::{PlaceHolder};
-use crate::placeholder::PlaceHolderBuilder;
+use crate::{Placeholder};
+use crate::placeholder::PlaceholderBuilder;
 
 #[derive(Debug, Error)]
 pub enum FormatError {
@@ -26,14 +26,14 @@ pub struct Format {
 pub enum FormatSection {
     Text(String),
     Variable(String),
-    Placeholder(Box<dyn PlaceHolder>),
+    Placeholder(Box<dyn Placeholder>),
 }
 
 impl Format {
     /// {{ placeholder({"format": "", "key": ""}) }}
     /// {{ variable.name }}
     /// Example format `Important Log Message Here  {{level({"color": true })}} {{ repository.name }}: {{message({})}}!!!`
-    pub fn new(placeholders: &Vec<Box<dyn PlaceHolderBuilder>>, format: &str, path_safe: bool) -> Result<Format, FormatError> where {
+    pub fn new(placeholders: &Vec<Box<dyn PlaceholderBuilder>>, format: &str, path_safe: bool) -> Result<Format, FormatError> where {
         let special_call_parse: Regex = Regex::new("\\{\\{(?P<key>.+?)(?P<PlaceHolder>[(](?P<settings>.+?)?[)])?}}+").unwrap();
         let mut matches = special_call_parse.captures_iter(format);
         let mut variables = Vec::new();
