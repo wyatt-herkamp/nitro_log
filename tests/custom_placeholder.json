@@ -1,0 +1,13 @@
+{
+  "root_loggers": [
+    {
+      "format": "[{{module({})}}] {{level({})}} {{myPlaceHolder({})}}: {{message({})}}",
+      "structure_dump": true,
+      "targets": [
+        {
+          "type": "console"
+        }
+      ]
+    }
+  ]
+}

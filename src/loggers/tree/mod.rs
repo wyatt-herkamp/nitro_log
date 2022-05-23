@@ -18,15 +18,15 @@ impl LoggerTree {
             children: vec![],
         };
         for log in loggers {
-            let string = log.module.clone();
+            let string = log.module.as_ref().expect("All Loggers Must have a module. Unless a root logger").clone();
             logger_tree.add_node_lookup(log, string);
         }
-        return logger_tree;
+        logger_tree
     }
     pub fn find_logger(&self, path: &str) -> Option<Vec<&Logger>> {
         let mut loggers = Vec::new();
         let mut paths: Vec<&str> = path.split("::").collect();
-        if paths.len() == 0 {
+        if paths.is_empty() {
             return None;
         }
         let current_node = paths.remove(0);
@@ -47,7 +47,7 @@ impl LoggerTree {
         for x in &self.loggers {
             loggers.push(x);
         }
-        return Some(loggers);
+        Some(loggers)
     }
     pub fn add_node_lookup(&mut self, logger: Logger, path: String) {
         let mut module_path: Vec<&str> = path.split("::").collect();
@@ -66,7 +66,7 @@ impl LoggerTree {
         };
 
         self.add_child(node);
-        return self.add_node_lookup(logger, path);
+        self.add_node_lookup(logger, path)
     }
     fn add_child(&mut self, node: TreeNode) {
         self.children.push(node);
@@ -77,7 +77,7 @@ impl TreeNode {
     pub fn find_logger(&self, mut path: Vec<&str>) -> Option<Vec<&Logger>> {
         let mut loggers = Vec::new();
 
-        if path.len() == 0 {
+        if path.is_empty() {
             for x in &self.loggers {
                 loggers.push(x);
             }
@@ -101,10 +101,10 @@ impl TreeNode {
         for x in &self.loggers {
             loggers.push(x);
         }
-        return Some(loggers);
+        Some(loggers)
     }
     pub fn add_node_lookup(&mut self, logger: Logger, mut path: Vec<&str>) -> bool {
-        if path.len() == 0 {
+        if path.is_empty() {
             self.add_logger(logger);
             return true;
         }
@@ -121,7 +121,7 @@ impl TreeNode {
             children: vec![],
         };
         self.add_child(node);
-        return self.add_node_lookup(logger, path);
+        self.add_node_lookup(logger, path)
     }
     fn add_logger(&mut self, logger: Logger) {
         self.loggers.push(logger);
@@ -131,56 +131,3 @@ impl TreeNode {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use crate::loggers::console::ConsoleLogger;
-    use crate::{Logger, LoggerTree};
-    use log::Level::{Info, Warn};
-
-    #[test]
-    fn basic() {
-        let mut loggers = Vec::new();
-        loggers.push(Logger {
-            module: "nitro::repo::maven".to_string(),
-            levels: vec![Info],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: false,
-        });
-        loggers.push(Logger {
-            module: "nitro::repo".to_string(),
-            levels: vec![Info],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: false,
-        });
-        loggers.push(Logger {
-            module: "nitro::repo::maven".to_string(),
-            levels: vec![Warn],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: false,
-        });
-        loggers.push(Logger {
-            module: "nitro::system".to_string(),
-            levels: vec![Info],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: true,
-        });
-        loggers.push(Logger {
-            module: "nitro::system::admin".to_string(),
-            levels: vec![Info],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: false,
-        });
-        loggers.push(Logger {
-            module: "nitro".to_string(),
-            levels: vec![Info],
-            targets: vec![Box::new(ConsoleLogger::default())],
-            always_execute: false,
-        });
-        let tree = LoggerTree::new(vec![Default::default()], loggers);
-        let option = tree.find_logger(&"nitro::repo::maven".to_string()).unwrap();
-        assert_eq!(option.len(), 2);
-        assert_eq!(tree.find_logger("nitro::repo::npm").unwrap().len(), 1);
-        assert_eq!(tree.find_logger("nitro::test::test").unwrap().len(), 1);
-        assert_eq!(tree.find_logger("nitro::system::admin").unwrap().len(), 2);
-    }
-}

@@ -1,32 +1,26 @@
 {
-  "default_loggers": [
+  "root_loggers": [
     {
-      "levels": ["DEBUG","INFO", "WARN", "ERROR"],
-      "targets": [
-        {
-          "type": "console",
-          "properties": {
-            "format": "%module% %level_{color='true'}%: %message%"
+      "format": {
+        "format": "[{{chrono(DATE_TIME)}}]  [{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
+        "placeholders": {
+          "LEVEL_SETTINGS": {
+            "colored": false
+          },
+          "DATE_TIME": {
+            "format": "%Y-%m-%d %H:%M:%S"
           }
         }
-      ]
-    }
-  ],
-  "loggers": [
-    {
-      "module": "normal",
+      },
+      "structure_dump": true,
       "targets": [
         {
-          "type": "console",
-          "properties": {
-            "format": "[%module%] %level_{color='true'}%: %message%"
-          }
+          "type": "console"
         },
         {
-          "type": "file-logger",
+          "type": "file_logger",
           "properties": {
-            "format": "%datetime_{format='$Y-$m-$d $H:$M:$S'}% %module% %level%: %message%",
-            "file": "logs/%module%/%level%-%datetime_{format='$Y-$m-$d'}%.log"
+            "file": "logs/{{module({})}}.log"
           }
         }
       ]

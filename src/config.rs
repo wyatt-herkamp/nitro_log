@@ -1,14 +1,81 @@
 use std::collections::HashMap;
+use std::fmt;
+use std::fmt::Write;
+use std::marker::PhantomData;
+use std::str::FromStr;
+use std::vec::IntoIter;
 
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
+use serde::__private::de;
+use serde::de::{MapAccess, Visitor};
+use serde::de::value::MapAccessDeserializer;
+
 use serde_json::Value;
 
-use crate::loggers::console::{ConsoleConfig, ConsoleLogger};
-use crate::loggers::file::{FileConfig, FileLogger};
-use crate::loggers::LoggerTarget;
-use crate::{Logger, LoggerTree};
+
+use crate::loggers::target::LoggerTarget;
+use crate::{Logger, LoggerBuilders};
+use crate::format::Format;
+
+#[derive(Serialize, Deserialize)]
+pub struct FormatConfig {
+    pub format: String,
+    pub placeholders: HashMap<String, Value>,
+}
+
+impl FromStr for FormatConfig {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(FormatConfig { format: s.to_string(), placeholders: Default::default() })
+    }
+}
+
+impl From<String> for FormatConfig {
+    fn from(format: String) -> Self {
+        FormatConfig {
+            format,
+            placeholders: Default::default(),
+        }
+    }
+}
+
+pub(crate) fn format_config_string_or_struct<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: Deserialize<'de> + FromStr<Err=()>,
+        D: Deserializer<'de>,
+{
+    struct StringOrStruct<T>(PhantomData<fn() -> T>);
+
+    impl<'de, T> Visitor<'de> for StringOrStruct<T>
+        where
+            T: Deserialize<'de> + FromStr<Err=()>,
+    {
+        type Value = T;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("string or map")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<T, E>
+            where
+                E: serde::de::Error,
+        {
+            Ok(FromStr::from_str(value).unwrap())
+        }
+
+        fn visit_map<M>(self, map: M) -> Result<T, M::Error>
+            where
+                M: MapAccess<'de>,
+        {
+            Deserialize::deserialize(MapAccessDeserializer::new(map))
+        }
+    }
+
+    deserializer.deserialize_any(StringOrStruct(PhantomData))
+}
 
 /// Target Config
 #[derive(Serialize, Deserialize)]
@@ -17,37 +84,33 @@ pub struct TargetConfig {
     #[serde(rename = "type")]
     pub target_type: String,
     /// Properties. Refer to Target config struct for more information
-    pub properties: HashMap<String, Value>,
+    #[serde(default)]
+    pub properties: Value,
 }
 
-/// For Default Loggers
-#[derive(Serialize, Deserialize)]
-pub struct DefaultLogger {
-    /// Levels To Log
-    #[serde(default = "default_levels")]
-    pub levels: Vec<Level>,
-    /// Targets
-    pub targets: Vec<TargetConfig>,
-    /// Do you want this to always execute
-    #[serde(default = "always_execute_default")]
-    pub always_execute: bool,
-}
 
 /// For Loggers with modules
 #[derive(Serialize, Deserialize)]
 pub struct LoggerConfig {
-    pub module: String,
+    pub module: Option<String>,
     /// Levels
     #[serde(default = "default_levels")]
     pub levels: Vec<Level>,
     /// Targets
     pub targets: Vec<TargetConfig>,
+    /// Format
+    #[serde(deserialize_with = "format_config_string_or_struct")]
+    pub format: FormatConfig,
+    /// Structure Dump
+    /// Dump the yaks
+    #[serde(default)]
+    pub structure_dump: bool,
     /// Do you want to always execute based on module parents
     /// If you have a module nitro::admin::system and nitro::admin
     /// if nitro::admin has this set to true
     /// And you grab the loggers for nitro::admin::system
     /// it will return true
-    #[serde(default = "always_execute_default")]
+    #[serde(default)]
     pub always_execute: bool,
 }
 
@@ -55,87 +118,50 @@ fn default_levels() -> Vec<Level> {
     vec![Trace, Info, Debug, Warn, Error]
 }
 
-fn always_execute_default() -> bool {
-    false
-}
-
-impl From<TargetConfig> for Box<dyn LoggerTarget> {
-    fn from(target: TargetConfig) -> Self {
-        if target.target_type.eq_ignore_ascii_case("console") {
-            let map = target.properties;
-            let result = serde_json::to_value(map).unwrap();
-            let config: ConsoleConfig = serde_json::from_value(result).unwrap();
-            return Box::new(ConsoleLogger::init(config).unwrap());
-        } else if target.target_type.eq_ignore_ascii_case("file-logger") {
-            let map = target.properties;
-            let result = serde_json::to_value(map).unwrap();
-            let config: FileConfig = serde_json::from_value(result).unwrap();
-            return Box::new(FileLogger::init(config).unwrap());
-        } else {
-            panic!("Unable to find target {}", target.target_type);
-        }
-    }
-}
-
-pub fn to_targets(configs: Vec<TargetConfig>) -> Vec<Box<dyn LoggerTarget>> {
-    let mut targets = Vec::new();
-    for x in configs {
-        targets.push(x.into())
-    }
-    return targets;
-}
-
-impl From<DefaultLogger> for Logger {
-    fn from(logger: DefaultLogger) -> Self {
-        return Logger {
-            module: "".to_string(),
-            levels: logger.levels,
-            targets: to_targets(logger.targets),
-            always_execute: logger.always_execute,
-        };
-    }
-}
-
-impl From<LoggerConfig> for Logger {
-    fn from(logger: LoggerConfig) -> Self {
-        return Logger {
-            module: logger.module,
-            levels: logger.levels,
-            targets: to_targets(logger.targets),
-            always_execute: logger.always_execute,
-        };
-    }
-}
-
-pub fn to_default_loggers(loggers: Vec<DefaultLogger>) -> Vec<Logger> {
-    let mut new_loggers = Vec::new();
-    for x in loggers {
-        new_loggers.push(x.into())
-    }
-    return new_loggers;
-}
-
-pub fn to_loggers(loggers: Vec<LoggerConfig>) -> Vec<Logger> {
-    let mut new_loggers = Vec::new();
-    for x in loggers {
-        new_loggers.push(x.into())
-    }
-    return new_loggers;
-}
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    /// All the loggers
+    /// All the logger
+    #[serde(default)]
     pub loggers: Vec<LoggerConfig>,
     ///Default Loggers
-    pub default_loggers: Vec<DefaultLogger>,
+    pub root_loggers: Vec<LoggerConfig>,
 }
 
-impl Config {
-    pub fn load(self) -> LoggerTree {
-        LoggerTree::new(
-            to_default_loggers(self.default_loggers),
-            to_loggers(self.loggers),
-        )
+pub fn create_loggers(config: Config, builders: LoggerBuilders) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
+    Ok((create_logger(config.root_loggers.into_iter(), &builders)?, create_logger(config.loggers.into_iter(), &builders)?))
+}
+
+fn create_logger(loggers: IntoIter<LoggerConfig>, builders: &LoggerBuilders) -> Result<Vec<Logger>, crate::Error> {
+    let mut values = Vec::new();
+    for logger in loggers {
+        let mut targets = Vec::new();
+        for target in logger.targets {
+            targets.push(create_target(target, builders)?);
+        }
+        values.push(Logger {
+            module: logger.module,
+            levels: logger.levels,
+            targets,
+            always_execute: logger.always_execute,
+            structure_dump: logger.structure_dump,
+            format: Format::new(&builders.placeholders, logger.format, false)?,
+        });
+    }
+    Ok(values)
+}
+
+fn create_target(target: TargetConfig, builders: &LoggerBuilders) -> Result<Box<dyn LoggerTarget>, crate::Error> {
+    if let Some(target_builder) = builders.targets.iter().find(|target_builder| target_builder.name().eq(&target.target_type)) {
+        match target_builder.build(target.properties, &builders.placeholders) {
+            Ok(value) => {
+                Ok(value)
+            }
+            Err(error) => {
+                Err(error)
+            }
+        }
+    } else {
+        todo!("Implement Error Handler here")
     }
 }
