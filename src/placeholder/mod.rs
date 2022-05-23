@@ -19,6 +19,7 @@ pub fn default_placeholders() -> PlaceHolders {
     placeholders.push(Box::new(standard_placeholders::MessagePlaceholderBuilder {}));
     placeholders.push(Box::new(standard_placeholders::LevelPlaceHolderBuilder {}));
     placeholders.push(Box::new(standard_placeholders::ModulePlaceHolderBuilder {}));
+    placeholders.push(Box::new(standard_placeholders::EnvironmentPlaceholderBuilder {}));
     #[cfg(feature = "chrono")]
     placeholders.push(Box::new(chrono::ChronoPlaceHolderBuilder {}));
     placeholders
