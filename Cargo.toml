@@ -12,7 +12,7 @@ keywords = ["log", "logger", "logging"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = { version = "0.4.8", features = ["std", "serde","kv_unstable", "kv_unstable_serde","kv_unstable_std", "kv_unstable_sval"] }
+log = { version = "0.4.17", features = ["std", "serde","kv_unstable", "kv_unstable_serde","kv_unstable_std", "kv_unstable_sval"] }
 serde_json = "1.0.70"
 serde = { version = "1.0.130", features = ["derive"] }
 regex = "1.5.4"
