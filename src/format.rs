@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-
+use std::fmt::{Display, Formatter};
 
 
 use regex::Regex;
@@ -35,7 +35,6 @@ impl Format {
     /// Example format `Important Log Message Here  {{level({"color": true })}} {{ repository.name }}: {{message({})}}!!!`
     pub fn new(placeholders: &Vec<Box<dyn PlaceHolderBuilder>>, format: &str, path_safe: bool) -> Result<Format, FormatError> where {
         let special_call_parse: Regex = Regex::new("\\{\\{(?P<key>.+?)(?P<PlaceHolder>[(](?P<settings>.+?)?[)])?}}+").unwrap();
-
         let mut matches = special_call_parse.captures_iter(format);
         let mut variables = Vec::new();
         for value in special_call_parse.split(format) {
@@ -46,7 +45,7 @@ impl Format {
                     let settings = if let Some(settings) = capture.name("settings") {
                         let mut values: HashMap<String, Value> = serde_json::from_str(settings.as_str()).map_err(FormatError::SettingParseError)?;
                         values.insert("path".to_string(), Value::Bool(path_safe));
-                        Some(values)
+                        Some(serde_json::to_value(values).map_err(FormatError::SettingParseError)?)
                     } else {
                         None
                     };

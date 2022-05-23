@@ -8,9 +8,8 @@ use log::{LevelFilter, Metadata, Record};
 use crate::config::Config;
 use crate::error::Error;
 use crate::loggers::tree::LoggerTree;
-use crate::loggers::{default_logger_targets, Logger, LoggerTargetBuilders};
-
-
+use crate::loggers::{Logger};
+use crate::loggers::target::{default_logger_targets, LoggerTargetBuilders};
 
 
 use crate::placeholder::{default_placeholders, PlaceHolder, PlaceHolders};

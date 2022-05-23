@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 
-use crate::loggers::LoggerTarget;
+use crate::loggers::target::LoggerTarget;
 use crate::{Logger, LoggerBuilders};
 use crate::format::Format;
 
@@ -55,7 +55,8 @@ fn default_levels() -> Vec<Level> {
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
-    /// All the loggers
+    /// All the logger
+    #[serde(default)]
     pub loggers: Vec<LoggerConfig>,
     ///Default Loggers
     pub root_loggers: Vec<LoggerConfig>,

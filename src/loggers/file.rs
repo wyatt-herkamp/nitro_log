@@ -10,9 +10,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::error::Error;
-use crate::loggers::{LoggerTarget, LoggerTargetBuilder, LoggerWriter};
+use crate::loggers::{LoggerTarget, LoggerWriter};
 use crate::{PlaceHolders};
 use crate::format::{Format, FormatSection};
+use crate::loggers::target::LoggerTargetBuilder;
 
 pub struct FileLoggerBuilder;
 
@@ -36,15 +37,16 @@ pub struct FileLogger {
 
 
 impl LoggerTarget for FileLogger {
-    fn start_write<'a>(&'a self, record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
+    fn start_write<'a>(&'a  self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
         let file = OpenOptions::new().create(true).append(true).open(generate_path(&self.file_format, record)?)?;
         Ok(LoggerWriter{
-            writer: Box::new(file),
-            logger: Box::new(self)
+            internal: Box::new(file),
+            logger: Box::new(self),
+            record
         })
     }
 
-    fn return_write(& self, _write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+    fn return_write(& self, _: LoggerWriter) -> anyhow::Result<()> {
         Ok(())
     }
 }
@@ -73,7 +75,7 @@ pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf
                 todo!("Variable Pathing is not available yet")
             }
             FormatSection::Placeholder(placeholder) => {
-                path = path.join(placeholder.build_message(record));
+                path = path.join(placeholder.build_message(record).as_ref());
             }
         }
     }

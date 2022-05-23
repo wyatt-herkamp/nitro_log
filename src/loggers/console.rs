@@ -5,8 +5,9 @@ use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::loggers::{LoggerTarget, LoggerTargetBuilder, LoggerWriter};
+use crate::loggers::{LoggerTarget, LoggerWriter};
 use crate::{Error, PlaceHolders};
+use crate::loggers::target::LoggerTargetBuilder;
 
 
 pub struct ConsoleLoggerBuilder;
@@ -30,15 +31,16 @@ pub struct ConsoleLogger {
 
 
 impl LoggerTarget for ConsoleLogger {
-    fn start_write<'a>(&'a self, _record: &Record) -> anyhow::Result<LoggerWriter<'a>> {
+    fn start_write<'a>(&'a  self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
         let _x = Box::new(self.console.lock());
         Ok(LoggerWriter{
-            writer: Box::new(self.console.lock()),
+            internal: Box::new(self.console.lock()),
+            record,
             logger: Box::new(self)
         })
     }
 
-    fn return_write(& self, _write: &mut Box<dyn Write>) -> anyhow::Result<()> {
+    fn return_write(& self, _: LoggerWriter) -> anyhow::Result<()> {
         Ok(())
     }
 }
