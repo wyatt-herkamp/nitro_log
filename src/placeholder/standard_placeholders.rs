@@ -26,7 +26,7 @@ pub struct MessagePlaceholder;
 
 impl Placeholder for MessagePlaceholder {
     fn build_message<'a>(&'a self, record: &'a Record) -> Cow<'a, str> {
-        Cow::Borrowed(record.args().as_str().unwrap_or(""))
+        Cow::Owned(record.args().to_string())
     }
 
     fn settings(&self) -> Option<Value> {

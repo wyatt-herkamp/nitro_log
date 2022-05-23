@@ -17,7 +17,7 @@
         {
           "type": "file_logger",
           "properties": {
-            "file": "{{module({})}}.log"
+            "file": "logs/{{module({})}}.log"
           }
         }
       ]

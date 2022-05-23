@@ -28,8 +28,7 @@ fn test() {
         let error1 = FormatError::MissingKey("Value".to_string());
         trace!(value = as_serde!(test), error=as_error!(error1); "Trace HEY");
     }
-
-    info!("INFO HEY");
+    info!("INFO HEY {}", test.hi);
     warn!("Warn HEY");
     error!("Error HEY");
 }
