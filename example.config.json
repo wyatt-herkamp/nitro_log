@@ -2,10 +2,13 @@
   "root_loggers": [
     {
       "format": {
-        "format": "[{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
+        "format": "[{{chrono(DATE_TIME)}}]  [{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
         "placeholders": {
           "LEVEL_SETTINGS": {
             "colored": false
+          },
+          "DATE_TIME": {
+            "format": "%Y-%m-%d %H:%M:%S"
           }
         }
       },

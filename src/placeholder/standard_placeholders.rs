@@ -61,6 +61,7 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct LevelPlaceholderSettings {
     #[cfg(feature = "colored")]
+    #[cfg_attr(feature = "colored", serde(default))]
     pub colored: bool,
 }
 
