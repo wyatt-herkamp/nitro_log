@@ -21,9 +21,10 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
         "file_logger".to_string()
     }
 
-    fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
+    fn build(&self, value: Value, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
+        let file_config: FileConfig = serde_json::from_value(value)?;
         let logger = FileLogger {
-            file_format: Format::new(placeholders, &value.get("file").unwrap().to_string(), true)?
+            file_format: Format::new(placeholders, &file_config.file, true)?
         };
         Ok(Box::new(logger))
     }

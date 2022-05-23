@@ -16,7 +16,7 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
         "console".to_string()
     }
 
-    fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
+    fn build(&self, value: Value, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error> {
         let logger = ConsoleLogger {
             console: stdout(),
         };

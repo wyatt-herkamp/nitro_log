@@ -109,7 +109,7 @@ pub fn default_logger_targets() -> LoggerTargetBuilders {
 
 pub trait LoggerTargetBuilder {
     fn name(&self) -> String;
-    fn build(&self, value: HashMap<String, Value>, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error>;
+    fn build(&self, value: Value, placeholders: &PlaceHolders) -> Result<Box<dyn LoggerTarget>, Error>;
 }
 
 pub trait LoggerTarget: Sync + Send {

@@ -4,6 +4,7 @@ use std::vec::IntoIter;
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Serialize};
+use serde_json::map::Values;
 use serde_json::Value;
 
 
@@ -19,7 +20,7 @@ pub struct TargetConfig {
     pub target_type: String,
     /// Properties. Refer to Target config struct for more information
     #[serde(default)]
-    pub properties: HashMap<String, Value>,
+    pub properties: Value,
 }
 
 
