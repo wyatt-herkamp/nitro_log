@@ -1,5 +1,5 @@
 use std::fs::{create_dir_all, OpenOptions};
-use std::io::Write;
+
 use std::path::PathBuf;
 
 use log::Record;
@@ -62,7 +62,7 @@ pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf
     for values in format.format.iter() {
         match values {
             FormatSection::Text(value) => {
-                path.push_str(&value);
+                path.push_str(value);
             }
             FormatSection::Variable(_variable) => {
                 todo!("Variable Pathing is not available yet")

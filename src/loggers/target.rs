@@ -1,4 +1,4 @@
-use std::io::Write;
+
 use log::Record;
 use serde_json::Value;
 use crate::loggers::{console, file};
@@ -7,12 +7,9 @@ use crate::loggers::writer::LoggerWriter;
 
 
 pub type LoggerTargetBuilders = Vec<Box<dyn LoggerTargetBuilder>>;
-
+#[allow(unused_mut)]
 pub fn default_logger_targets() -> LoggerTargetBuilders {
-    let mut logger_targets: LoggerTargetBuilders = Vec::new();
-    logger_targets.push(Box::new(console::ConsoleLoggerBuilder {}));
-    logger_targets.push(Box::new(file::FileLoggerBuilder {}));
-
+    let mut logger_targets: LoggerTargetBuilders = vec![Box::new(console::ConsoleLoggerBuilder {}),Box::new(file::FileLoggerBuilder {}) ];
     logger_targets
 }
 

@@ -1,6 +1,6 @@
 
 
-use std::io::{stdout, Stdout, Write};
+use std::io::{stdout, Stdout};
 use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

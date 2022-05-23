@@ -1,4 +1,3 @@
-use colored;
 use log::{as_error, as_serde, error, info, log_enabled, trace, warn};
 use nitro_log::{LoggerBuilders, NitroLogger};
 

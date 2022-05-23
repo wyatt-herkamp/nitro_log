@@ -1,7 +1,7 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
-use std::path::{MAIN_SEPARATOR, PathBuf};
+
+use std::fmt::{Debug};
+use std::path::{MAIN_SEPARATOR};
 use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -43,7 +43,7 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
 
 
     fn build(&self, value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
-        let config: LevelPlaceholderSettings = if let Some(config) = value {
+        let _config: LevelPlaceholderSettings = if let Some(config) = value {
             serde_json::from_value(config)?
         } else {
             LevelPlaceholderSettings::default()
@@ -173,7 +173,7 @@ pub struct NotSavedEnvVariable(String);
 
 impl Placeholder for NotSavedEnvVariable {
     fn build_message<'a>(&'a self, _: &'a Record) -> Cow<'a, str> {
-        Cow::Owned(std::env::var(&self.0).unwrap_or("undefined".to_string()))
+        Cow::Owned(std::env::var(&self.0).unwrap_or_else(|_|"undefined".to_string()))
     }
 
     fn settings(&self) -> Option<Value> {

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::fmt::Write;
 use std::marker::PhantomData;
 use std::str::FromStr;
 use std::vec::IntoIter;
@@ -8,7 +7,7 @@ use std::vec::IntoIter;
 use log::Level;
 use log::Level::{Debug, Error, Info, Trace, Warn};
 use serde::{Deserialize, Deserializer, Serialize};
-use serde::__private::de;
+
 use serde::de::{MapAccess, Visitor};
 use serde::de::value::MapAccessDeserializer;
 

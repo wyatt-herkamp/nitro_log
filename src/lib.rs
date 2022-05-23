@@ -1,6 +1,3 @@
-use std::fs::File;
-use std::path::PathBuf;
-
 use log::{LevelFilter, Metadata, Record};
 
 
@@ -9,7 +6,6 @@ use crate::error::Error;
 use crate::loggers::tree::LoggerTree;
 use crate::loggers::{Logger};
 use crate::loggers::target::{default_logger_targets, LoggerTargetBuilders};
-
 
 use crate::placeholder::{default_placeholders, Placeholder, PlaceHolders};
 
@@ -20,6 +16,12 @@ pub mod kv;
 pub mod format;
 pub mod loggers;
 pub mod placeholder;
+
+pub type ErrorHandler = Box<dyn Send + Sync + Fn(&anyhow::Error)>;
+
+fn default_error_handler(error: &anyhow::Error) {
+    eprintln!("Nitro Logger: {}", error);
+}
 
 pub struct LoggerBuilders {
     pub placeholders: PlaceHolders,
@@ -36,28 +38,34 @@ impl Default for LoggerBuilders {
 }
 
 pub struct NitroLogger {
-    pub loggers: LoggerTree,
+    loggers: LoggerTree,
+   pub(crate) error_handler: Box<dyn Send + Sync + Fn(&anyhow::Error)>,
+
 }
 
 impl NitroLogger {
-    /// Load a Config Via a file
-    pub fn load_file(config: PathBuf, builders: LoggerBuilders) -> Result<(), Error> {
-        let config: Config = serde_json::from_reader(File::open(config)?)?;
-        NitroLogger::load(config, builders)
-    }
     /// Load the Config via the Config the object
     pub fn load(config: Config, builders: LoggerBuilders) -> Result<(), Error> {
         let (root, loggers) = config::create_loggers(config, builders)?;
-        Self::new(LoggerTree::new(root, loggers))
+        let result = Self::new(LoggerTree::new(root, loggers), Box::new(default_error_handler));
+        log::set_boxed_logger(Box::new(result))?;
+        log::set_max_level(LevelFilter::Trace);
+        Ok(())
+    }
+    pub fn load_with_error_handler(config: Config, builders: LoggerBuilders, error_handler: ErrorHandler) -> Result<(), Error> {
+        let (root, loggers) = config::create_loggers(config, builders)?;
+        let result = Self::new(LoggerTree::new(root, loggers), error_handler);
+        log::set_boxed_logger(Box::new(result))?;
+        log::set_max_level(LevelFilter::Trace);
+        Ok(())
     }
     /// Create a new Nitro Logger with the already setup LoggerTree
     pub fn new(
-        loggers: LoggerTree) -> Result<(), Error> {
-        log::set_boxed_logger(Box::new(NitroLogger {
+        loggers: LoggerTree, error_handler: ErrorHandler) -> NitroLogger {
+        NitroLogger {
             loggers,
-        }))
-            .map(|()| log::set_max_level(LevelFilter::Trace))
-            .map_err(Error::SetLoggerError)
+            error_handler,
+        }
     }
 }
 
@@ -86,7 +94,7 @@ impl log::Log for NitroLogger {
         let loggers = option.unwrap();
         for logger in loggers {
             if logger.levels.contains(&record.metadata().level()) {
-                logger.log(record);
+                logger.log(record,self);
             }
         }
     }

@@ -3,16 +3,15 @@ use std::io::Write;
 
 use log::{Level, Record};
 use log::kv::{ToKey};
-use serde_json::Value;
 
 
-use crate::error::Error;
 use crate::format::{Format, FormatSection};
 use crate::kv::default_structure_dump::DefaultStructureDump;
-use crate::loggers::console::ConsoleLoggerBuilder;
+
 use crate::loggers::target::LoggerTarget;
 use crate::loggers::writer::LoggerWriter;
-use crate::PlaceHolders;
+use crate::NitroLogger;
+
 
 pub mod tree;
 pub mod console;
@@ -42,7 +41,7 @@ impl Logger {
     }
     /// Logs a record
     /// Handling Formatting and the internal writers
-    pub fn log(&self, record: &Record) {
+    pub fn log(&self, record: &Record, logger: &NitroLogger) {
         let mut writers = Vec::new();
         for target in self.targets.iter() {
             if let Ok(value) = target.start_write(record) {
@@ -52,16 +51,16 @@ impl Logger {
         for values in &self.format.format {
             match values {
                 FormatSection::Text(value) => {
-                    self.write(&mut writers, value.as_bytes());
+                    self.write(&mut writers, value.as_bytes(), logger);
                 }
                 FormatSection::Variable(variable) => {
                     if let Some(value) = record.key_values().get(variable.to_key()) {
-                        self.write(&mut writers, value.to_string().as_bytes());
-                        self.write(&mut writers, variable.as_bytes());
+                        self.write(&mut writers, value.to_string().as_bytes(), logger);
+                        self.write(&mut writers, variable.as_bytes(), logger);
                     }
                 }
                 FormatSection::Placeholder(placeholder) => {
-                    self.write(&mut writers, placeholder.build_message(record).as_bytes());
+                    self.write(&mut writers, placeholder.build_message(record).as_bytes(), logger);
                 }
             }
         }
@@ -75,21 +74,21 @@ impl Logger {
             writers
         };
 
-        self.write(&mut writers, "\n".as_bytes());
+        self.write(&mut writers, "\n".as_bytes(), logger);
 
         for mut writer in writers.into_iter() {
-            if let Err(_error) = writer.flush() {
-                todo!("Errors not handled at flush")
+            if let Err(error) = writer.flush() {
+                (logger.error_handler)(&anyhow::Error::from(error));
             }
-            if let Err(_) = writer.logger.return_write(writer) {
-                todo!("Errors not handled at flush")
+            if let Err(error) = writer.logger.return_write(writer) {
+                (logger.error_handler)(&error);
             }
         }
     }
-    fn write(&self, writers: &mut Vec<LoggerWriter>, content: &[u8]) {
+    fn write(&self, writers: &mut [LoggerWriter], content: &[u8], logger: &NitroLogger) {
         for writer in writers.iter_mut() {
-            if let Err(_error) = writer.write_all(content) {
-                todo!("Errors not handled at writing")
+            if let Err(error) = writer.write_all(content) {
+                (logger.error_handler)(&anyhow::Error::from(error));
             }
         }
     }

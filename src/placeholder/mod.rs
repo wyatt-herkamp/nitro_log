@@ -5,21 +5,17 @@ pub mod chrono;
 pub mod colored;
 
 use std::borrow::Cow;
-use std::collections::HashMap;
-use std::fmt::{Debug, Display};
+
+use std::fmt::{Debug};
 use log::Record;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use crate::Error;
 
 pub type PlaceHolders = Vec<Box<dyn PlaceholderBuilder>>;
-
+#[allow(unused_mut)]
 pub fn default_placeholders() -> PlaceHolders {
-    let mut placeholders: PlaceHolders = Vec::new();
-    placeholders.push(Box::new(standard_placeholders::MessagePlaceholderBuilder {}));
-    placeholders.push(Box::new(standard_placeholders::LevelPlaceHolderBuilder {}));
-    placeholders.push(Box::new(standard_placeholders::ModulePlaceHolderBuilder {}));
-    placeholders.push(Box::new(standard_placeholders::EnvironmentPlaceholderBuilder {}));
+    let mut placeholders: PlaceHolders = vec![Box::new(standard_placeholders::MessagePlaceholderBuilder {}),Box::new(standard_placeholders::LevelPlaceHolderBuilder {}),Box::new(standard_placeholders::ModulePlaceHolderBuilder {}),Box::new(standard_placeholders::EnvironmentPlaceholderBuilder {})];
     #[cfg(feature = "chrono")]
     placeholders.push(Box::new(chrono::ChronoPlaceHolderBuilder {}));
     placeholders
