@@ -1,6 +1,7 @@
 use log::{error, info, warn, Record};
 use std::borrow::Cow;
 use std::fmt::Debug;
+use std::fs::OpenOptions;
 
 use nitro_log::{LoggerBuilders, NitroLogger};
 
@@ -50,7 +51,14 @@ fn test() {
     builders
         .placeholders
         .push(Box::new(MyPlaceHolderBuilder {}));
-    NitroLogger::load_file(PathBuf::from("tests/custom_placeholder.json"), builders).unwrap();
+
+    let config = PathBuf::from("tests/custom_placeholder.json");
+    let file = OpenOptions::new().read(true).open(config).unwrap();
+    NitroLogger::load(
+        serde_json::from_reader(file).unwrap(),
+        builders,
+    )
+        .unwrap();
     info!("INFO HEY");
     warn!("Warn HEY");
     error!("Error HEY");
