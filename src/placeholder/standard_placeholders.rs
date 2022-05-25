@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::placeholder::PlaceholderBuilder;
+use crate::placeholder::{PlaceholderBuilder};
 use crate::{Error, Placeholder};
 use log::Record;
 use serde::{Deserialize, Serialize};
@@ -41,26 +41,28 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
     }
 
     fn build(&self, _value: Option<Value>) -> Result<Box<dyn Placeholder>, Error> {
-        #[cfg(feature = "colored")]
+        #[cfg(feature = "style-term")]
         {
-            let config: LevelPlaceholderSettings = if let Some(config) = _value {
-                serde_json::from_value(config)?
+            let value: LevelPlaceholderSettings = super::parse_config_no_default(_value)?;
+
+            if !value.path || value.colored.is_some() {
+                Ok(Box::new(super::style_term::level::StyledLevelPlaceholder::from(value.colored.unwrap())))
             } else {
-                LevelPlaceholderSettings::default()
-            };
-            if config.colored {
-                return Ok(Box::new(super::colored::ColorLevelPlaceholder {}));
+                Ok(Box::new(LevelPlaceHolder))
             }
         }
+        #[cfg(not(feature = "style-term"))]
         Ok(Box::new(LevelPlaceHolder))
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct LevelPlaceholderSettings {
-    #[cfg(feature = "colored")]
+    #[cfg(feature = "style-term")]
     #[cfg_attr(feature = "colored", serde(default))]
-    pub colored: bool,
+    pub colored: Option<super::style_term::level::LevelColorConfig>,
+    #[serde(default)]
+    pub path: bool,
 }
 
 #[derive(Debug)]
@@ -166,7 +168,7 @@ impl Placeholder for SavedEnvVariable {
             key: self.0.clone(),
             save: true,
         })
-        .ok()
+            .ok()
     }
 }
 
@@ -183,6 +185,6 @@ impl Placeholder for NotSavedEnvVariable {
             key: self.0.clone(),
             save: false,
         })
-        .ok()
+            .ok()
     }
 }

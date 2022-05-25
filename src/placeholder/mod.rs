@@ -1,8 +1,9 @@
 #[cfg(feature = "chrono")]
 pub mod chrono;
-#[cfg(feature = "colored")]
-pub mod colored;
+
 pub mod standard_placeholders;
+#[cfg(feature = "style-term")]
+pub mod style_term;
 
 use std::borrow::Cow;
 
@@ -13,6 +14,7 @@ use serde_json::Value;
 use std::fmt::Debug;
 
 pub type PlaceHolders = Vec<Box<dyn PlaceholderBuilder>>;
+
 #[allow(unused_mut)]
 pub fn default_placeholders() -> PlaceHolders {
     let mut placeholders: PlaceHolders = vec![
