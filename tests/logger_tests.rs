@@ -1,4 +1,3 @@
-use std::fs::{File, OpenOptions};
 use log::{as_error, as_serde, error, info, log_enabled, trace, warn};
 use nitro_log::{LoggerBuilders, NitroLogger};
 
@@ -18,15 +17,13 @@ pub struct KvTest {
 
 #[test]
 fn test() {
-    let buf = PathBuf::new().join("example.config.json");
-    let config = serde_json::from_reader(OpenOptions::new().read(true).open(buf).unwrap()).unwrap();
-    NitroLogger::load(
-        config,
+    NitroLogger::load_file(
+        PathBuf::new().join("example.config.json"),
         LoggerBuilders::default(),
     )
     .unwrap();
     let test = KvTest {
-        hi: "My Value".parse().unwrap(),
+        hi: "My Value".red().to_string(),
     };
 
     if log_enabled!(Trace) {
