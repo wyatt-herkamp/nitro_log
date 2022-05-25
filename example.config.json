@@ -5,7 +5,7 @@
         "format": "[{{chrono(DATE_TIME)}}]  [{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
         "placeholders": {
           "LEVEL_SETTINGS": {
-            "colored": {}
+            "styles": {}
           },
           "DATE_TIME": {
             "format": "%Y-%m-%d %H:%M:%S"

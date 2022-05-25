@@ -45,8 +45,8 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
         {
             let value: LevelPlaceholderSettings = super::parse_config_no_default(_value)?;
 
-            if !value.path || value.colored.is_some() {
-                Ok(Box::new(super::style_term::level::StyledLevelPlaceholder::from(value.colored.unwrap())))
+            if !value.path && value.styles.is_some() {
+                Ok(Box::new(super::style_term::level::StyledLevelPlaceholder::from(value.styles.unwrap())))
             } else {
                 Ok(Box::new(LevelPlaceHolder))
             }
@@ -59,8 +59,8 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct LevelPlaceholderSettings {
     #[cfg(feature = "style-term")]
-    #[cfg_attr(feature = "colored", serde(default))]
-    pub colored: Option<super::style_term::level::LevelColorConfig>,
+    #[cfg_attr(feature = "style-term", serde(default))]
+    pub styles: Option<super::style_term::level::LevelColorConfig>,
     #[serde(default)]
     pub path: bool,
 }
