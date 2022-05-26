@@ -2,7 +2,7 @@
   "root_loggers": [
     {
       "format": {
-        "format": "[{{chrono(DATE_TIME)}}]  [{{module({})}}] {{level(LEVEL_SETTINGS)}}: {{message({})}}",
+        "format": "[{{chrono(DATE_TIME)}}]  [{{module({})}}] {{value.hi}} {{level(LEVEL_SETTINGS)}}: {{message({})}}",
         "placeholders": {
           "LEVEL_SETTINGS": {
             "styles": {}
@@ -20,7 +20,7 @@
         {
           "type": "file_logger",
           "properties": {
-            "file": "logs/{{module({})}}.log"
+            "file": "logs/{{value}}/{{module({})}}.log"
           }
         }
       ]

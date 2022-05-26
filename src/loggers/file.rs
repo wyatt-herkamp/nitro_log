@@ -17,8 +17,8 @@ use crate::PlaceHolders;
 pub struct FileLoggerBuilder;
 
 impl LoggerTargetBuilder for FileLoggerBuilder {
-    fn name(&self) -> String {
-        "file_logger".to_string()
+    fn name(&self) -> &'static str {
+        "file_logger"
     }
 
     fn build(
@@ -39,7 +39,7 @@ pub struct FileLogger {
 }
 
 impl LoggerTarget for FileLogger {
-    fn start_write<'a>(&'a self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
+    fn start_write<'log>(&'log self, record: &'log Record) -> anyhow::Result<LoggerWriter<'log>> {
         let file = OpenOptions::new()
             .create(true)
             .append(true)
@@ -49,10 +49,6 @@ impl LoggerTarget for FileLogger {
             logger: Box::new(self),
             record,
         })
-    }
-
-    fn return_write(&self, _: LoggerWriter) -> anyhow::Result<()> {
-        Ok(())
     }
 }
 
@@ -69,8 +65,9 @@ fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
             FormatSection::Text(value) => {
                 path.push_str(value);
             }
-            FormatSection::Variable(_variable) => {
-                todo!("Variable Pathing is not available yet")
+            FormatSection::Variable(variable) => {
+                path.push_str(
+                    variable.get_value(record.key_values()).as_str());
             }
             FormatSection::Placeholder(placeholder) => {
                 path.push_str(placeholder.build_message(record).as_ref());

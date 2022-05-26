@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use crate::config::FormatConfig;
 use crate::format::FormatError::MissingKey;
 use crate::placeholder::PlaceholderBuilder;
@@ -5,6 +6,7 @@ use crate::Placeholder;
 use regex::Regex;
 use serde_json::Value;
 use thiserror::Error;
+use crate::kv::Variable;
 
 #[derive(Debug, Error)]
 pub enum FormatError {
@@ -22,9 +24,10 @@ pub struct Format {
 #[derive(Debug)]
 pub enum FormatSection {
     Text(String),
-    Variable(String),
+    Variable(Variable),
     Placeholder(Box<dyn Placeholder>),
 }
+
 
 impl Format {
     /// {{ placeholder({"format": "", "key": ""}) }}
@@ -80,8 +83,15 @@ impl Format {
                             MissingKey(format!("Missing Placeholder {}", key.as_str()))
                         })?;
                     FormatSection::Placeholder(result.build(settings).unwrap())
-                } else {
-                    FormatSection::Variable(key.as_str().trim().to_string())
+                } else if key.as_str().contains('.') {
+                        let split = key.as_str().trim().split('.');
+                        let mut split: VecDeque<String> = split.map(|v| v.to_string()).collect();
+                        let key = split.pop_front().unwrap();
+
+                        FormatSection::Variable(Variable::PathVariable(key, split.into_iter().collect()))
+
+                }else {
+                    FormatSection::Variable(Variable::SinglePartVariable(key.as_str().trim().to_string()))
                 };
 
                 variables.push(special_call);

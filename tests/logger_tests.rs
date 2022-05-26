@@ -5,8 +5,6 @@ use nitro_log::{LoggerBuilders, NitroLogger};
 use log::Level::Trace;
 use serde::Serialize;
 use std::path::PathBuf;
-use std::thread::sleep;
-use std::time::Duration;
 
 use nitro_log::format::FormatError;
 

@@ -1,6 +1,5 @@
 use std::io::Write;
 
-use log::kv::ToKey;
 use log::{Level, Record};
 
 use crate::format::{Format, FormatSection};
@@ -49,10 +48,7 @@ impl Logger {
                     self.write(&mut writers, value.as_bytes(), logger);
                 }
                 FormatSection::Variable(variable) => {
-                    if let Some(value) = record.key_values().get(variable.to_key()) {
-                        self.write(&mut writers, value.to_string().as_bytes(), logger);
-                        self.write(&mut writers, variable.as_bytes(), logger);
-                    }
+                    self.write(&mut writers, variable.get_value(record.key_values()).as_bytes(), logger)
                 }
                 FormatSection::Placeholder(placeholder) => {
                     self.write(

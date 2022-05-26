@@ -10,8 +10,8 @@ pub struct ConsoleLoggerBuilder;
 
 impl LoggerTargetBuilder for ConsoleLoggerBuilder {
     #[inline]
-    fn name(&self) -> String {
-        "console".to_owned()
+    fn name(&self) -> &'static str {
+        "console"
     }
 
     fn build(
@@ -29,7 +29,7 @@ pub struct ConsoleLogger {
 }
 
 impl LoggerTarget for ConsoleLogger {
-    fn start_write<'a>(&'a self, record: &'a Record) -> anyhow::Result<LoggerWriter<'a>> {
+    fn start_write<'log>(&'log self, record: &'log Record) -> anyhow::Result<LoggerWriter<'log>> {
         let _x = Box::new(self.console.lock());
         Ok(LoggerWriter {
             internal: Box::new(self.console.lock()),
@@ -38,7 +38,4 @@ impl LoggerTarget for ConsoleLogger {
         })
     }
 
-    fn return_write(&self, _: LoggerWriter) -> anyhow::Result<()> {
-        Ok(())
-    }
 }
