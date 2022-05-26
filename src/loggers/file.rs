@@ -75,7 +75,7 @@ fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
         }
     }
 
-    let path = PathBuf::from(path);
+    let path = PathBuf::from(sanitize_filename::sanitize(path));
     if let Some(parent) = path.parent() {
         create_dir_all(parent)?;
     }
