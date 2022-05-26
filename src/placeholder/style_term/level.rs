@@ -1,60 +1,59 @@
 use std::borrow::Cow;
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug};
 use log::{Level, Record};
 use serde::{Serialize, Deserialize};
 use serde_json::Value;
-use style_term::{Color, DefaultColor, Styles, StyleString};
+use style_term::{ DefaultColor, StylesContainer, StyleString};
 use crate::Placeholder;
-use crate::placeholder::standard_placeholders::LevelPlaceholderSettings;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LevelColorConfig {
     #[serde(default = "default_error")]
-    pub error: Styles,
+    pub error: StylesContainer,
     #[serde(default = "default_warn")]
-    pub warn: Styles,
+    pub warn: StylesContainer,
     #[serde(default = "default_info")]
-    pub info: Styles,
+    pub info: StylesContainer,
     #[serde(default = "default_debug")]
-    pub debug: Styles,
+    pub debug: StylesContainer,
     #[serde(default = "default_trace")]
-    pub trace: Styles,
+    pub trace: StylesContainer,
 }
 
-fn default_error() -> Styles {
-    Styles {
+fn default_error() -> StylesContainer {
+    StylesContainer {
         text_color: Some(DefaultColor::Red.into()),
         background_color: None,
         styles: vec![],
     }
 }
 
-fn default_warn() -> Styles {
-    Styles {
+fn default_warn() -> StylesContainer {
+    StylesContainer {
         text_color: Some(DefaultColor::BrightYellow.into()),
         background_color: None,
         styles: vec![],
     }
 }
 
-fn default_info() -> Styles {
-    Styles {
+fn default_info() -> StylesContainer {
+    StylesContainer {
         text_color: Some(DefaultColor::BrightGreen.into()),
         background_color: None,
         styles: vec![],
     }
 }
 
-fn default_debug() -> Styles {
-    Styles {
+fn default_debug() -> StylesContainer {
+    StylesContainer {
         text_color: Some(DefaultColor::Gray.into()),
         background_color: None,
         styles: vec![],
     }
 }
 
-fn default_trace() -> Styles {
-    Styles {
+fn default_trace() -> StylesContainer {
+    StylesContainer {
         text_color: Some(DefaultColor::BrightBlue.into()),
         background_color: None,
         styles: vec![],

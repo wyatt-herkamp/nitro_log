@@ -62,7 +62,7 @@ pub struct FileConfig {
     pub file: FormatConfig,
 }
 
-pub fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
+fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
     let mut path = String::new();
     for values in format.format.iter() {
         match values {

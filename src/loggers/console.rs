@@ -1,5 +1,4 @@
 use log::Record;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::io::{stdout, Stdout};
 
@@ -12,7 +11,7 @@ pub struct ConsoleLoggerBuilder;
 impl LoggerTargetBuilder for ConsoleLoggerBuilder {
     #[inline]
     fn name(&self) -> String {
-        "console".to_string()
+        "console".to_owned()
     }
 
     fn build(
@@ -41,18 +40,5 @@ impl LoggerTarget for ConsoleLogger {
 
     fn return_write(&self, _: LoggerWriter) -> anyhow::Result<()> {
         Ok(())
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct ConsoleConfig {
-    pub format: String,
-}
-
-impl Default for ConsoleConfig {
-    fn default() -> Self {
-        ConsoleConfig {
-            format: "{{module()}} {{level()}}: {{message()}}".to_string(),
-        }
     }
 }
