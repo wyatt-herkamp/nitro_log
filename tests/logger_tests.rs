@@ -17,8 +17,9 @@ pub struct KvTest {
 fn test() {
     let config = PathBuf::from("example.config.json");
     let file = OpenOptions::new().read(true).open(config).unwrap();
+    let config = serde_json::from_reader(file).unwrap();
     NitroLogger::load(
-        serde_json::from_reader(file).unwrap(),
+        config,
         LoggerBuilders::default(),
     )
         .unwrap();
