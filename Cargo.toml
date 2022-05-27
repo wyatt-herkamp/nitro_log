@@ -1,6 +1,6 @@
 [package]
 name = "nitro_log"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 repository = "https://github.com/wherkamp/nitro_log"
 authors = ["Wyatt Herkamp <wherkamp@kingtux.me>"]
