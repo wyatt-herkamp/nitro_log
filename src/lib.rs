@@ -1,4 +1,4 @@
-
+use std::rc::Rc;
 use log::{LevelFilter, Metadata, Record};
 
 use crate::config::Config;
@@ -21,6 +21,7 @@ pub type ErrorHandler = Box<dyn Send + Sync + Fn(&anyhow::Error)>;
 fn default_error_handler(error: &anyhow::Error) {
     eprintln!("Nitro Logger: {}", error);
 }
+
 #[non_exhaustive]
 pub struct LoggerBuilders {
     pub placeholders: PlaceHolders,
@@ -64,6 +65,20 @@ impl NitroLogger {
         log::set_max_level(LevelFilter::Trace);
         Ok(())
     }
+    pub fn create(config: Config, builders: LoggerBuilders) -> Result<NitroLogger, Error> {
+        Self::create_with_error_handler(config, builders, Box::new(default_error_handler))
+    }
+
+    pub fn create_with_error_handler(
+        config: Config,
+        builders: LoggerBuilders,
+        error_handler: ErrorHandler,
+    ) -> Result<NitroLogger, Error> {
+        let (root, loggers) = config::create_loggers(config, builders)?;
+        let result = Self::new(LoggerTree::new(root, loggers), error_handler);
+        Ok(result)
+    }
+
     /// Create a new Nitro Logger with the already setup LoggerTree
     pub fn new(loggers: LoggerTree, error_handler: ErrorHandler) -> NitroLogger {
         NitroLogger {
