@@ -22,7 +22,7 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
     }
 
     fn build(
-        &self,
+        &mut self,
         _: &Logger,
         value: Value,
         placeholders: &PlaceHolders,

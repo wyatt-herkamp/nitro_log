@@ -22,7 +22,7 @@ pub trait LoggerTargetBuilder {
     /// # Errors
     /// Errors for config issues
     fn build(
-        &self,
+        &mut self,
         logger: &Logger,
         config: Value,
         placeholders: &PlaceHolders,

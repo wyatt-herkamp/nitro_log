@@ -133,17 +133,17 @@ pub struct Config {
 
 pub fn create_loggers(
     config: Config,
-    builders: LoggerBuilders,
+  mut  builders:  LoggerBuilders,
 ) -> Result<(Vec<Logger>, Vec<Logger>), crate::Error> {
     Ok((
-        create_logger(config.root_loggers.into_iter(), &builders)?,
-        create_logger(config.loggers.into_iter(), &builders)?,
+        create_logger(config.root_loggers.into_iter(), &mut builders)?,
+        create_logger(config.loggers.into_iter(), &mut builders)?,
     ))
 }
 
 fn create_logger(
     loggers: IntoIter<LoggerConfig>,
-    builders: &LoggerBuilders,
+    builders: &mut LoggerBuilders,
 ) -> Result<Vec<Logger>, crate::Error> {
     let mut values = Vec::new();
     for config in loggers {
@@ -171,11 +171,11 @@ fn create_logger(
 fn create_target(
     logger: &Logger,
     target: TargetConfig,
-    builders: &LoggerBuilders,
+    builders: &mut LoggerBuilders,
 ) -> Result<Box<dyn LoggerTarget>, crate::Error> {
     if let Some(target_builder) = builders
         .targets
-        .iter()
+        .iter_mut()
         .find(|target_builder| target_builder.name().eq(&target.target_type))
     {
         match target_builder.build(logger, target.properties, &builders.placeholders) {

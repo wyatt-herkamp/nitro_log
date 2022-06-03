@@ -15,7 +15,7 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
     }
 
     fn build(
-        &self,
+        &mut self,
         _: &Logger,
         _value: Value,
         _placeholders: &PlaceHolders,
