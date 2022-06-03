@@ -54,11 +54,7 @@ fn test() {
 
     let config = PathBuf::from("tests/custom_placeholder.json");
     let file = OpenOptions::new().read(true).open(config).unwrap();
-    NitroLogger::load(
-        serde_json::from_reader(file).unwrap(),
-        builders,
-    )
-        .unwrap();
+    NitroLogger::load(serde_json::from_reader(file).unwrap(), builders).unwrap();
     info!("INFO HEY");
     warn!("Warn HEY");
     error!("Error HEY");

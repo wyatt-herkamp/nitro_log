@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::placeholder::{PlaceholderBuilder};
+use crate::placeholder::PlaceholderBuilder;
 use crate::{Error, Placeholder};
 use log::Record;
 use serde::{Deserialize, Serialize};
@@ -46,7 +46,9 @@ impl PlaceholderBuilder for LevelPlaceHolderBuilder {
             let value: LevelPlaceholderSettings = super::parse_config_no_default(_value)?;
 
             if !value.path && value.styles.is_some() {
-                Ok(Box::new(super::style_term::level::StyledLevelPlaceholder::from(value.styles.unwrap())))
+                Ok(Box::new(
+                    super::style_term::level::StyledLevelPlaceholder::from(value.styles.unwrap()),
+                ))
             } else {
                 Ok(Box::new(LevelPlaceHolder))
             }
@@ -168,7 +170,7 @@ impl Placeholder for SavedEnvVariable {
             key: self.0.clone(),
             save: true,
         })
-            .ok()
+        .ok()
     }
 }
 
@@ -185,6 +187,6 @@ impl Placeholder for NotSavedEnvVariable {
             key: self.0.clone(),
             save: false,
         })
-            .ok()
+        .ok()
     }
 }

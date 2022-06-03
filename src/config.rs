@@ -92,6 +92,10 @@ pub struct TargetConfig {
 /// For Loggers with modules
 #[derive(Serialize, Deserialize)]
 pub struct LoggerConfig {
+    /// Should be a unique name for the logger
+    /// This will default to module value. If module is not set, it will default to "root"
+    pub logger_name: Option<String>,
+    /// The target module. This should not be set if it is a root logger
     pub module: Option<String>,
     /// Levels
     #[serde(default = "default_levels")]
@@ -142,24 +146,30 @@ fn create_logger(
     builders: &LoggerBuilders,
 ) -> Result<Vec<Logger>, crate::Error> {
     let mut values = Vec::new();
-    for logger in loggers {
-        let mut targets = Vec::new();
-        for target in logger.targets {
-            targets.push(create_target(target, builders)?);
+    for config in loggers {
+        let mut logger = Logger {
+            logger_name: config
+                .logger_name
+                .unwrap_or_else(|| config.module.clone().unwrap_or_else(|| "root".to_string())),
+            module: config.module,
+            levels: config.levels,
+            targets: Default::default(),
+            always_execute: config.always_execute,
+            structure_dump: config.structure_dump,
+            format: Format::new(&builders.placeholders, config.format, false)?,
+        };
+        for target in config.targets {
+            logger
+                .targets
+                .push(create_target(&logger, target, builders)?);
         }
-        values.push(Logger {
-            module: logger.module,
-            levels: logger.levels,
-            targets,
-            always_execute: logger.always_execute,
-            structure_dump: logger.structure_dump,
-            format: Format::new(&builders.placeholders, logger.format, false)?,
-        });
+        values.push(logger);
     }
     Ok(values)
 }
 
 fn create_target(
+    logger: &Logger,
     target: TargetConfig,
     builders: &LoggerBuilders,
 ) -> Result<Box<dyn LoggerTarget>, crate::Error> {
@@ -168,7 +178,7 @@ fn create_target(
         .iter()
         .find(|target_builder| target_builder.name().eq(&target.target_type))
     {
-        match target_builder.build(target.properties, &builders.placeholders) {
+        match target_builder.build(logger, target.properties, &builders.placeholders) {
             Ok(value) => Ok(value),
             Err(error) => Err(error),
         }

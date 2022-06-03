@@ -5,7 +5,7 @@ use log::Record;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::borrow::Cow;
-use std::fmt::{Debug};
+use std::fmt::Debug;
 
 pub struct ChronoPlaceHolderBuilder;
 

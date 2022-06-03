@@ -4,7 +4,7 @@ use std::io::{stdout, Stdout};
 
 use crate::loggers::target::LoggerTargetBuilder;
 use crate::loggers::{LoggerTarget, LoggerWriter};
-use crate::{Error, PlaceHolders};
+use crate::{Error, Logger, PlaceHolders};
 
 pub struct ConsoleLoggerBuilder;
 
@@ -16,6 +16,7 @@ impl LoggerTargetBuilder for ConsoleLoggerBuilder {
 
     fn build(
         &self,
+        _: &Logger,
         _value: Value,
         _placeholders: &PlaceHolders,
     ) -> Result<Box<dyn LoggerTarget>, Error> {
@@ -37,5 +38,4 @@ impl LoggerTarget for ConsoleLogger {
             logger: Box::new(self),
         })
     }
-
 }

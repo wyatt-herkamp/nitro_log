@@ -26,7 +26,10 @@ impl Variable {
                                     return undefined();
                                 }
                             }
-                            value.as_str().map(|v| v.to_owned()).unwrap_or_else(undefined)
+                            value
+                                .as_str()
+                                .map(|v| v.to_owned())
+                                .unwrap_or_else(undefined)
                         }
                         Err(error) => {
                             format!("(Unable to parse via serde_json: {})", error)
@@ -36,9 +39,10 @@ impl Variable {
                     undefined()
                 }
             }
-            Variable::SinglePartVariable(variable) => {
-                source.get(variable.to_key()).map(|v| v.to_string()).unwrap_or_else(undefined)
-            }
+            Variable::SinglePartVariable(variable) => source
+                .get(variable.to_key())
+                .map(|v| v.to_string())
+                .unwrap_or_else(undefined),
         }
     }
 }

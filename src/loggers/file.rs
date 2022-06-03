@@ -12,7 +12,7 @@ use crate::error::Error;
 use crate::format::{Format, FormatSection};
 use crate::loggers::target::LoggerTargetBuilder;
 use crate::loggers::{LoggerTarget, LoggerWriter};
-use crate::PlaceHolders;
+use crate::{Logger, PlaceHolders};
 
 pub struct FileLoggerBuilder;
 
@@ -23,6 +23,7 @@ impl LoggerTargetBuilder for FileLoggerBuilder {
 
     fn build(
         &self,
+        _: &Logger,
         value: Value,
         placeholders: &PlaceHolders,
     ) -> Result<Box<dyn LoggerTarget>, Error> {
@@ -66,8 +67,7 @@ fn generate_path(format: &Format, record: &Record) -> anyhow::Result<PathBuf> {
                 path.push_str(value);
             }
             FormatSection::Variable(variable) => {
-                path.push_str(
-                    variable.get_value(record.key_values()).as_str());
+                path.push_str(variable.get_value(record.key_values()).as_str());
             }
             FormatSection::Placeholder(placeholder) => {
                 path.push_str(placeholder.build_message(record).as_ref());

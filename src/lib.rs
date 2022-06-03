@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use log::{LevelFilter, Metadata, Record};
 
 use crate::config::Config;

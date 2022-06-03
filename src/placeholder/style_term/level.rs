@@ -1,10 +1,10 @@
-use std::borrow::Cow;
-use std::fmt::{Debug};
-use log::{Level, Record};
-use serde::{Serialize, Deserialize};
-use serde_json::Value;
-use style_term::{ DefaultColor, StylesContainer, StyleString};
 use crate::Placeholder;
+use log::{Level, Record};
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::borrow::Cow;
+use std::fmt::Debug;
+use style_term::{DefaultColor, StyleString, StylesContainer};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LevelColorConfig {
@@ -69,15 +69,14 @@ impl From<LevelColorConfig> for StyledLevelPlaceholder {
     }
 }
 
-
 impl Placeholder for StyledLevelPlaceholder {
     fn build_message<'message>(&'message self, record: &'message Record) -> Cow<'message, str> {
         let value = match record.level() {
-            Level::Error => { "Error".apply_styles(&self.0.error).to_string() }
-            Level::Warn => { "Warn".apply_styles(&self.0.warn).to_string() }
-            Level::Info => { "Info".apply_styles(&self.0.info).to_string() }
-            Level::Debug => { "Debug".apply_styles(&self.0.debug).to_string() }
-            Level::Trace => { "Trace".apply_styles(&self.0.trace).to_string() }
+            Level::Error => "Error".apply_styles(&self.0.error).to_string(),
+            Level::Warn => "Warn".apply_styles(&self.0.warn).to_string(),
+            Level::Info => "Info".apply_styles(&self.0.info).to_string(),
+            Level::Debug => "Debug".apply_styles(&self.0.debug).to_string(),
+            Level::Trace => "Trace".apply_styles(&self.0.trace).to_string(),
         };
         Cow::Owned(value)
     }

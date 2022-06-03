@@ -16,6 +16,8 @@ pub mod tree;
 pub mod writer;
 
 pub struct Logger {
+    /// Should be unique for each logger
+    pub logger_name: String,
     pub module: Option<String>,
     pub levels: Vec<Level>,
     pub targets: Vec<Box<dyn LoggerTarget>>,
@@ -47,9 +49,11 @@ impl Logger {
                 FormatSection::Text(value) => {
                     self.write(&mut writers, value.as_bytes(), logger);
                 }
-                FormatSection::Variable(variable) => {
-                    self.write(&mut writers, variable.get_value(record.key_values()).as_bytes(), logger)
-                }
+                FormatSection::Variable(variable) => self.write(
+                    &mut writers,
+                    variable.get_value(record.key_values()).as_bytes(),
+                    logger,
+                ),
                 FormatSection::Placeholder(placeholder) => {
                     self.write(
                         &mut writers,

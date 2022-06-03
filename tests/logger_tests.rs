@@ -1,6 +1,6 @@
-use std::fs::OpenOptions;
 use log::{as_error, as_serde, debug, error, info, log_enabled, trace, warn};
 use nitro_log::{LoggerBuilders, NitroLogger};
+use std::fs::OpenOptions;
 
 use log::Level::Trace;
 use serde::Serialize;
@@ -18,11 +18,7 @@ fn test() {
     let config = PathBuf::from("example.config.json");
     let file = OpenOptions::new().read(true).open(config).unwrap();
     let config = serde_json::from_reader(file).unwrap();
-    NitroLogger::load(
-        config,
-        LoggerBuilders::default(),
-    )
-        .unwrap();
+    NitroLogger::load(config, LoggerBuilders::default()).unwrap();
     let test = KvTest {
         hi: "My Value".to_string(),
     };

@@ -1,6 +1,6 @@
 use crate::loggers::writer::LoggerWriter;
 use crate::loggers::{console, file};
-use crate::{Error, PlaceHolders};
+use crate::{Error, Logger, PlaceHolders};
 use log::Record;
 use serde_json::Value;
 
@@ -23,6 +23,7 @@ pub trait LoggerTargetBuilder {
     /// Errors for config issues
     fn build(
         &self,
+        logger: &Logger,
         config: Value,
         placeholders: &PlaceHolders,
     ) -> Result<Box<dyn LoggerTarget>, Error>;
