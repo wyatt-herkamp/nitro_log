@@ -1,6 +1,6 @@
 [package]
 name = "nitro_log"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 repository = "https://github.com/wherkamp/nitro_log"
 authors = ["Wyatt Herkamp <wherkamp@kingtux.me>"]
@@ -12,11 +12,11 @@ keywords = ["log", "logger", "logging"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-log = { version = "0.4.17", features = ["std", "serde", "kv_unstable", "kv_unstable_serde", "kv_unstable_std"] }
-serde_json = "1.0.70"
-serde = { version = "1.0.130", features = ["derive"] }
-regex = "1.5.4"
-chrono = { version = "0.4.19", optional = true }
+log = { version = "0.4", features = ["std", "serde", "kv_unstable", "kv_unstable_serde", "kv_unstable_std"] }
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+regex = "1.5"
+chrono = { version = "0.4", optional = true }
 style-term = { version = "1.0.0", features = ["serde"], optional = true }
-thiserror = "1.0.31"
-anyhow = "1.0.57"
+thiserror = "1"
+anyhow = "1"
